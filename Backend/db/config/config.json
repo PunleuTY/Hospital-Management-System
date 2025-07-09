@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "typunleu",
+    "password": "zxcvbnm",
+    "database": "hospital",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "typunleu",
+    "password": "zxcvbnm",
+    "database": "hospital",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "typunleu",
+    "password": "zxcvbnm",
+    "database": "hospital",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
