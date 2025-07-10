@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HiChevronDown } from "react-icons/hi";
 
 const Dropdown = ({
@@ -6,10 +6,19 @@ const Dropdown = ({
   defaultLabel = "Select",
   onSelect,
   className,
+  reset,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  // Reset the dropdown when reset value changes
+  useEffect(() => {
+    if (reset) {
+      setSelected(null);
+      setIsOpen(false);
+    }
+  }, [reset]);
 
   const handleSelect = (option) => {
     setSelected(option);

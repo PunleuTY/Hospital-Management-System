@@ -3,44 +3,114 @@ import Input from "./Common/Input";
 import { useState } from "react";
 import Button from "./Common/Button";
 import { useNavigate } from "react-router-dom";
-
-//TODO: Implement account username and password validation
+import { login } from "../service/userAPI";
+import { setToken, setUser } from "../utils/auth";
 
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [usernameErr, setUsernameErr] = useState(false);
   const [passErr, setPassErr] = useState(false);
-  const navigate = useNavigate(); // React Router hook for navigation
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const navigate = useNavigate();
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
+    if (passErr) setPassErr(false); // Clear error when user starts typing
+    if (loginError) setLoginError(""); // Clear login error
   };
 
   const handleUserNameChange = (e) => {
     setUserName(e.target.value);
+    if (usernameErr) setUsernameErr(false); // Clear error when user starts typing
+    if (loginError) setLoginError(""); // Clear login error
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    let isValid = true;
+
+    if (userName.trim() === "") {
+      setUsernameErr(true);
+      isValid = false;
+    } else {
+      setUsernameErr(false);
+    }
+
+    if (password.trim() === "") {
+      setPassErr(true);
+      isValid = false;
+    } else {
+      setPassErr(false);
+    }
+
+    return isValid;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoginError("");
 
-    // if (userName.trim() === "") {
-    //   setUsernameErr(true);
-    // } else {
-    //   setUsernameErr(false);
-    // }
-    // if (password.trim() === "") {
-    //   setPassErr(true);
-    // } else {
-    //   setPassErr(false);
-    // }
-    // if (usernameErr || passErr) {
-    //   return;
-    // }
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
 
-    console.log("Username:", userName);
-    console.log("Password:", password);
-    navigate("/dashboard"); // Navigate to the Dashboard
+    setIsLoading(true);
+
+    try {
+      const loginData = {
+        username: userName.trim(),
+        password: password,
+      };
+
+      console.log("Attempting login for:", loginData.username);
+      const response = await login(loginData);
+
+      console.log("Login successful:", response);
+      console.log("Response structure:", JSON.stringify(response, null, 2));
+
+      // Check if login was successful
+      if (!response.success) {
+        throw new Error(response.message || "Login failed");
+      }
+
+      // Extract data from your backend response structure
+      const { token, userRole } = response.data;
+
+      if (!token) {
+        throw new Error("No token received from server");
+      }
+
+      console.log("Token:", token);
+      console.log("User role data:", userRole);
+
+      // Store token
+      setToken(token);
+
+      // Transform userRole to match expected user structure
+      if (userRole) {
+        const userData = {
+          username: loginData.username, // Store the username we used to login
+          role: {
+            roleId: userRole.role_id,
+            roleName: userRole.role_name,
+          },
+        };
+
+        setUser(userData);
+        console.log("Stored user data:", userData);
+        console.log("User role:", userData.role.roleName);
+      }
+
+      // Navigate to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      setLoginError(error.message || "Invalid username or password");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,6 +129,14 @@ export default function Login() {
             Sign In
           </p>
         </div>
+
+        {/* Login Error Message */}
+        {loginError && (
+          <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <p className="text-sm text-center">{loginError}</p>
+          </div>
+        )}
+
         <div className="w-full">
           <div className="w-full">
             <div className="flex gap-3">
@@ -98,10 +176,11 @@ export default function Login() {
           </div>
         </div>
         <Button
-          content={"Sign In"}
+          content={isLoading ? "Signing In..." : "Sign In"}
           isAddIcon={false}
           className={"w-full"}
           onClick={handleSubmit}
+          disabled={isLoading}
         />
       </div>
     </div>

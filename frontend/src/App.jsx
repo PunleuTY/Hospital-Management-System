@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Import Layout
 import Navigations from "./layouts/Navigations.jsx";
@@ -25,6 +27,7 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/dashboard/*" element={<DashboardWithLayout />} />
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }
