@@ -5,6 +5,7 @@ const Dropdown = ({
   options = [],
   defaultLabel = "Select",
   onSelect,
+  className,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +18,7 @@ const Dropdown = ({
   };
 
   return (
-    <div className="relative inline-block w-60">
+    <div className={`relative inline-block w-60 ${className}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
