@@ -220,3 +220,6 @@ $RECYCLE.BIN/
 
 # Python
 /database/backup_and_recovery/myenv
+.vscode
+*/.env
+.env
