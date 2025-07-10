@@ -28,7 +28,7 @@ export const createUser = async (req, res) => {
       roleId: role,
     });
 
-    return success(res, newUser, 201);
+    return success(res, { message: "User Created Successfully" }, 201);
   } catch (err) {
     console.error("Error creating user:", err);
     return fail(res, err);

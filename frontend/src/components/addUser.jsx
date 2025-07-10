@@ -1,20 +1,29 @@
 import Input from "./Common/Input";
 import Button from "./Common/Button";
 import Dropdown from "./Common/Dropdown";
-import { use, useEffect, useState } from "react";
+import { useState } from "react";
+import { createUser } from "../service/userAPI.js";
+import { success, error } from "./utils/toast.js";
 
 export default function AddUser() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     userName: false,
     password: false,
     role: false,
   });
+  const [resetValue, setResetValue] = useState(0);
 
   // Role Option
-  const roleOptions = ["Nurse", "Receptionist", "Doctor"];
+  const roleMap = {
+    doctor: 2,
+    nurse: 3,
+    receptionist: 4,
+  };
+  const roleOptions = ["Doctor", "Nurse", "Receptionist"];
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
@@ -28,6 +37,7 @@ export default function AddUser() {
     setUserName("");
     setPassword("");
     setSelectedRole("");
+    setResetValue((prev) => prev + 1); // Increment instead of toggle
     setErrors({ userName: false, password: false, role: false });
   };
 
@@ -58,81 +68,107 @@ export default function AddUser() {
     return isValid;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validateStatus = validate();
     if (validateStatus) {
-      const newUser = {
-        username: userName,
-        password: password,
-        role: selectedRole,
-      };
-      // Here you can add the logic to submit the form data
-      console.log("Form submitted successfully");
-      console.log(newUser);
-      reset();
+      setIsLoading(true);
+      try {
+        const newUser = {
+          username: userName,
+          password: password,
+          role: roleMap[selectedRole.toLowerCase()],
+        };
+
+        console.log("Submitting user:", newUser);
+        const response = await createUser(newUser);
+        console.log("User created successfully:", response);
+
+        reset();
+        success("User Created Successfully!");
+      } catch (err) {
+        console.error("Failed to create user:", err);
+        // Show specific error message if available
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to create user!";
+        error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    //TODO: call api to add user
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <h1 className="text-2xl md:text-3xl font-bold mb-4">Add User</h1>
-      <div className="border border-gray-300 rounded-md p-4 md:p-6 w-full max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0">
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-            <p className="text-sm font-medium">Username</p>
-            {errors.userName && (
-              <p className="text-red-500 text-xs">Please enter username</p>
-            )}
+    <div className="w-full p-6">
+      <h1 className="text-3xl font-bold mb-1">Add User</h1>
+      <div className="flex gap-5">
+        <div className="flex-1 border border-(--color-gray) rounded-md p-3">
+          <div>
+            <div className="flex gap-2">
+              <p>Username</p>
+              {errors.userName && (
+                <p className="text-red-500">Please enter username</p>
+              )}
+            </div>
+            <Input
+              className="mb-3"
+              type="text"
+              placeholder="Enter Username"
+              name="username"
+              onChange={handleUserNameChange}
+              value={userName}
+            />
           </div>
-          <Input
-            className="w-full"
-            type="text"
-            placeholder="Enter Username"
-            name="username"
-            onChange={handleUserNameChange}
-            value={userName}
-          />
-        </div>
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-            <p className="text-sm font-medium">Password</p>
-            {errors.password && (
-              <p className="text-red-500 text-xs">Please enter password</p>
-            )}
+          <div className="flex-1">
+            <div className="flex gap-2">
+              <p>Password</p>
+              {errors.password && (
+                <p className="text-red-500">Please enter password</p>
+              )}
+            </div>
+            <Input
+              className="mb-3"
+              type="password"
+              placeholder="Enter Password"
+              name="password"
+              onChange={handlePasswordChange}
+              value={password}
+            />
           </div>
-          <Input
-            className="w-full"
-            type="password"
-            placeholder="Enter Password"
-            name="password"
-            onChange={handlePasswordChange}
-            value={password}
-          />
-        </div>
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-            <p className="text-sm font-medium">Role</p>
-            {errors.role && (
-              <p className="text-red-500 text-xs">Please select a role</p>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
+          <div>
+            <div className="flex gap-2">
+              <p>Role</p>
+              {errors.role && (
+                <p className="text-red-500">Please select a role</p>
+              )}
+            </div>
+            <div className="flex gap-3 ">
               <Dropdown
                 options={roleOptions}
                 defaultLabel="Choose a Role"
                 onSelect={setSelectedRole}
+                reset={resetValue}
+              />
+              <Button
+                content={isLoading ? "Adding..." : "Add User"}
+                onClick={handleSubmit}
+                className={"w-full"}
+                isAddIcon={true}
+                disabled={isLoading}
               />
             </div>
-            <Button
-              content={"Add User"}
-              onClick={handleSubmit}
-              isAddIcon={true}
-              className="w-full sm:w-auto"
-            />
           </div>
         </div>
+        {/* <div className="flex-1 border border-(--color-gray) rounded-md p-3">
+          <h2 className="font-bold text-2xl mb-2">User Summarization</h2>
+          <div>
+            <p>Total User: 13</p>
+            <p className="mt-2">Total Doctor: 5</p>
+            <p className="mt-2">Total Nurse: 4</p>
+            <p className="mt-2">Total Receptionist: 4</p>
+          </div>
+        </div> */}
       </div>
     </div>
   );
