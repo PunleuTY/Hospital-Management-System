@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 
 /**
  * PageBlurWrapper - Wraps page content and applies blur effect when modal is open
@@ -13,10 +13,10 @@ export default function PageBlurWrapper({ children, isBlurred }) {
         filter: isBlurred ? "blur(4px)" : "blur(0px)",
         scale: isBlurred ? 0.95 : 1,
       }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
       className="min-h-screen"
     >
       {children}
     </motion.div>
-  )
+  );
 }

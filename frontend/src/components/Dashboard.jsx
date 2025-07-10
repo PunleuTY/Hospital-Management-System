@@ -94,10 +94,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div
-      className="p-5 h-full flex flex-col gap-5"
-      style={{ height: "calc(100% - 60px)" }}
-    >
+    <div className="p-5 h-full flex flex-col gap-5 overflow-auto">
       <div className="flex flex-col md:flex-row gap-5 justify-between">
         {cardData.map((card, index) => {
           return (

@@ -1,140 +1,225 @@
-import { React } from 'react';
-import Button from './Common/Button'; 
-import { useState } from 'react';
-import Input from './Common/Input';
-import PageBlurWrapper from './Common/Blur-wrapper.jsx'
-import ModalWrapper from './Common/Modal-wrapper.jsx';
-import StatisticCard from './Common/statisticCard.jsx';
-import Dropdown from './Common/Dropdown.jsx';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Common/Table.jsx';
-import AddStaff from './Form/addStaff.jsx';
+import { React } from "react";
+import Button from "./Common/Button";
+import { useState, useEffect } from "react";
+import Input from "./Common/Input";
+import PageBlurWrapper from "./Common/Blur-wrapper.jsx";
+import ModalWrapper from "./Common/Modal-wrapper.jsx";
+import StatisticCard from "./Common/statisticCard.jsx";
+import Dropdown from "./Common/Dropdown.jsx";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./Common/Table.jsx";
+import AddStaff from "./Form/addStaff.jsx";
+
+//API
+import { getAllStaffs } from "../service/staffAPI.js";
+import { deleteStaff as deleteStaffAPI } from "../service/staffAPI.js";
 
 //Icons
 import { TiDelete } from "react-icons/ti";
 
 export default function Staff() {
-  const [staff, setStaff] = useState([
-    {
-      "staff_id": "STF001",
-      "last_name": "Chan",
-      "first_name": "Ratha",
-      "gender": "Male",
-      "role": "Doctor",
-      "contact": "012345678",
-      "specialization": "Cardiology",
-      "department_id": "DPT01",
-      "doctor_id": "DOC1001"
-    },
-    {
-      "staff_id": "STF002",
-      "last_name": "Sok",
-      "first_name": "Sreyneang",
-      "gender": "Female",
-      "role": "Nurse",
-      "contact": "098765432",
-      "specialization": null,
-      "department_id": "DPT02",
-      "doctor_id": null
-    },
-    {
-      "staff_id": "STF003",
-      "last_name": "Kim",
-      "first_name": "Piseth",
-      "gender": "Male",
-      "role": "Surgeon",
-      "contact": "092112233",
-      "specialization": "Neurosurgery",
-      "department_id": "DPT03",
-      "doctor_id": "DOC1002"
-    },
-    {
-      "staff_id": "STF004",
-      "last_name": "Lim",
-      "first_name": "Dara",
-      "gender": "Male",
-      "role": "Receptionist",
-      "contact": "087654321",
-      "specialization": null,
-      "department_id": "DPT01",
-      "doctor_id": null
-    },
-    {
-      "staff_id": "STF005",
-      "last_name": "Men",
-      "first_name": "Kalyan",
-      "gender": "Female",
-      "role": "Doctor",
-      "contact": "093223344",
-      "specialization": "Pediatrics",
-      "department_id": "DPT04",
-      "doctor_id": "DOC1003"
+  const [staff, setStaffs] = useState([]);
+
+  useEffect(() => {
+    fetchAllStaff();
+  }, []);
+
+  const fetchAllStaff = async () => {
+    try {
+      const staffs = await getAllStaffs();
+      setStaffs(staffs);
+    } catch (err) {
+      console.error("Failed to fetch staff:", err.message);
     }
-  ]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const isOpenModal = () => {setIsModalOpen(true);}
-  const closeModal = () => {setIsModalOpen(false);} 
-
-  const deleteStaff = (id) => {
-    setStaff((prev) => prev.filter((s) => s.staff_id !== id))
-  }
-
-  const handleAddStaff = (newStaff) => {
-    setStaff((prev) => [...prev, newStaff]);
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isOpenModal = () => {
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const deleteStaff = async (id) => {
+    try {
+      await deleteStaffAPI(id);
+      setStaffs((prev) => prev.filter((s) => s.staff_id !== id));
+    } catch (err) {
+      console.error("Failed to delete staff:", err.message);
+    }
+  };
+
+  const handleAddStaff = (newStaff) => {
+    setStaffs((prev) => [...prev, newStaff]);
+  };
+
+  const mockStaffData = [
+    {
+      staff_id: "S001",
+      first_name: "Dr. Sarah",
+      last_name: "Johnson",
+      gender: "Female",
+      role: "Doctor",
+      contact: "555-0201",
+      specialization: "Cardiology",
+      department_id: "D001",
+      doctor_id: "DOC001",
+    },
+    {
+      staff_id: "S002",
+      first_name: "Michael",
+      last_name: "Brown",
+      gender: "Male",
+      role: "Nurse",
+      contact: "555-0202",
+      specialization: "Emergency Care",
+      department_id: "D002",
+      doctor_id: null,
+    },
+    {
+      staff_id: "S003",
+      first_name: "Dr. Emily",
+      last_name: "Davis",
+      gender: "Female",
+      role: "Doctor",
+      contact: "555-0203",
+      specialization: "Pediatrics",
+      department_id: "D003",
+      doctor_id: "DOC003",
+    },
+    {
+      staff_id: "S004",
+      first_name: "James",
+      last_name: "Wilson",
+      gender: "Male",
+      role: "Technician",
+      contact: "555-0204",
+      specialization: "Radiology",
+      department_id: "D004",
+      doctor_id: null,
+    },
+    {
+      staff_id: "S005",
+      first_name: "Dr. Lisa",
+      last_name: "Anderson",
+      gender: "Female",
+      role: "Doctor",
+      contact: "555-0205",
+      specialization: "Neurology",
+      department_id: "D001",
+      doctor_id: "DOC005",
+    },
+  ];
+
+  const header = [
+    "Staff ID",
+    "First Name",
+    "Last Name",
+    "Gender",
+    "Role",
+    "Contact",
+    "Specialization",
+    "Dept Id",
+    "Doc Id",
+    "Actions",
+  ];
+
   return (
-    <div className='min-h-screen bg-gray-50 p-6'>
+    <div className="h-full overflow-auto p-3">
       <PageBlurWrapper isBlurred={isModalOpen}>
-        <div className='max-w-7xl mx-auto'>
-          <div className='flex items-center justify-between mb-6'>
-            <h1 className='text-2xl font-bold text-gray-800'>Staff List</h1>
+        <div className="w-full flex flex-col gap-3 px-1">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Staff</h1>
             <Button content="Add Staff" onClick={isOpenModal} />
           </div>
-        </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className='bg-gray-200 sticky z-5'>Staff ID</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>First Name</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Last Name</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Gender</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Role</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Contact</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Specialization</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Department_ID</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Doctor_ID</TableHead>
-              <TableHead className='bg-gray-200 sticky z-5'>Actions</TableHead>
-            </TableRow>
-          </TableHeader>  
-          <TableBody>
-            {staff.map((s) => (
-              <TableRow key={s.staff_id}>
-                <TableCell>{s.staff_id}</TableCell>
-                <TableCell>{s.first_name}</TableCell>
-                <TableCell>{s.last_name}</TableCell>
-                <TableCell>{s.gender}</TableCell>
-                <TableCell>{s.role}</TableCell>
-                <TableCell>{s.contact}</TableCell>
-                <TableCell>{s.specialization}</TableCell>
-                <TableCell>{s.department_id}</TableCell>
-                <TableCell>{s.doctor_id}</TableCell>
-                <TableCell>
-                  <button className='text-red-500 hover:text-red-700' onClick={() => deleteStaff(s.staff_id)}>
-                    <TiDelete className='w-8 h-8' />
-                  </button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          <div className="bg-white rounded-lg shadow overflow-hidden w-full">
+            <div className="overflow-x-auto no-scrollbar w-full">
+              <Table className="w-full table-fixed">
+                <TableHeader>
+                  <TableRow>
+                    {header.map((h, idx) => {
+                      const widthClasses = [
+                        "w-24", // Id
+                        "w-32", // firstname
+                        "w-32", // lastname
+                        "w-28", // gender
+                        "w-20", // role
+                        "w-32", // contact
+                        "w-32", // specialization
+                        "w-24", // dept id
+                        "w-24", // doc id
+                        "w-20", // actions
+                      ];
+                      return (
+                        <TableHead
+                          key={idx}
+                          className={`text-xs whitespace-nowrap px-4 py-3 ${widthClasses[idx]}`}
+                        >
+                          {h}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mockStaffData.map((staff) => (
+                    <TableRow key={staff.id}>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.staff_id}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.first_name}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.last_name}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.gender}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.role}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.contact}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.specialization}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.department_id}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
+                        {staff.doctor_id}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 w-24">
+                        <button
+                          onClick={() => deleteAppointment(appointment.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <TiDelete className="w-8 h-8 cursor-pointer" />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
       </PageBlurWrapper>
 
       <ModalWrapper
         isOpen={isModalOpen}
         onClose={closeModal}
-        size='md'
+        size="md"
         showCloseButton={true}
         closeOnBackdropClick={true}
         closeOnEscape={true}
@@ -142,6 +227,5 @@ export default function Staff() {
         <AddStaff onClose={closeModal} onAddStaff={handleAddStaff} />
       </ModalWrapper>
     </div>
-
   );
-};
+}
