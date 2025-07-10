@@ -1,10 +1,8 @@
 import db from "../../db/models/index.js";
 const { Medical_record } = db;
 
-export const listMedicalRecords = async ({ limit, offset }) => {
+export const listMedicalRecords = async () => {
   Medical_record.findAndCountAll({
-    limit,
-    offset,
     order: [["record_id", "ASC"]],
   });
 };

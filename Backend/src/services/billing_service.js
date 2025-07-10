@@ -1,10 +1,8 @@
 import db from "../../db/models/index.js";
 const { Billing } = db;
 
-export const listBills = async ({ limit, offset }) => {
+export const listBills = async () => {
   Billing.findAndCountAll({
-    limit,
-    offset,
     order: [["billing_id", "ASC"]],
   });
 };

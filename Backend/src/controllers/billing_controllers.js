@@ -7,16 +7,9 @@ import {
 import { success, fail } from "../utils/response.js";
 
 export const getAllbills = async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.max(1, parseInt(req.query.limit) || 10);
-  const offset = (page - 1) * limit;
   try {
-    const { rows, count } = await listBills({ limit, offset });
-    const totalPages = Math.ceil(count / limit);
-    return success(res, {
-      data: rows,
-      meta: { tatal: count, page, limit, totalPages },
-    });
+    const bills = await listBills();
+    return success(res, bills);
   } catch (err) {
     return fail(res, err);
   }

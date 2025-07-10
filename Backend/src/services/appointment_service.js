@@ -3,8 +3,6 @@ const { Appointment } = db;
 
 export const listAllAppointments = async () => {
   Appointment.findAndCountAll({
-    limit,
-    offset,
     order: [["appointment_id", "ASC"]],
   });
 };

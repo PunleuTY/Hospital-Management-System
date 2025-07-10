@@ -1,10 +1,8 @@
 import db from "../../db/models/index.js";
 const { Department } = db;
 
-export const listDepartments = async ({ limit, offset }) =>
+export const listDepartments = async () =>
   Department.findAndCountAll({
-    limit,
-    offset,
     order: [["department_id", "ASC"]],
   });
 

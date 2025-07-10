@@ -6,17 +6,9 @@ import {
 import { success, fail } from "../utils/response.js";
 
 export const getAllMedicalRecords = async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.max(1, parseInt(req.query.limit) || 10);
-  const offset = (page - 1) * limit;
-
   try {
-    const { rows, count } = await listMedicalRecords({ limit, offset });
-    const totalPages = Math.ceil(count / limit);
-    return success(res, {
-      data: rows,
-      meta: { total: count, page, limit, totalPages },
-    });
+    const records = await listMedicalRecords();
+    return success(res, records);
   } catch (err) {
     return fail(res, err);
   }

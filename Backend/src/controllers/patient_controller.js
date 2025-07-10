@@ -9,17 +9,9 @@ import {
 
 // GET /api/patients?page=&limit=
 export const getAllPatients = async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const limit = Math.max(1, parseInt(req.query.limit, 10) || 10);
-  const offset = (page - 1) * limit;
-
   try {
-    const { rows, count } = await listPatients({ limit, offset });
-    const totalPages = Math.ceil(count / limit);
-    return success(res, {
-      data: rows,
-      meta: { total: count, page, limit, totalPages },
-    });
+    const patients = await listPatients();
+    return success(res, patients);
   } catch (err) {
     console.error("getAllPatients error:", err);
     return fail(res, err);
