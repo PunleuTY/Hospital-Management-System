@@ -6,21 +6,22 @@ import {
   updatePatient,
   deletePatient,
 } from "../controllers/patient_controller.js";
+
 const router = express.Router();
 
 // Router for get patients
-router.get("/api/patients", getAllPatients);
+router.get("/", getAllPatients);
 
 // Router for get patient by id
-router.get("/api/patients/:id", getPatientById);
+router.get("/:id", getPatientById);
 
 // Router for create patient
-router.post("/api/patients", createPatient);
+router.post("/", createPatient);
 
 // Router for update patient
-router.put("/api/patients/:id", updatePatient);
+router.put("/:id", updatePatient);
 
 // Router for delete patient
-router.delete("/api/patients/:id", deletePatient);
+router.delete("/:id", deletePatient);
 
 export default router;

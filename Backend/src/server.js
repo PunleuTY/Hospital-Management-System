@@ -24,12 +24,12 @@ dotenv.config({
 
 app.use(cors(), express.json());
 
-app.use(patientRoutes);
-app.use(billRoutes);
-app.use(medicalRecordRoutes);
-app.use(staffRoutes);
-app.use(appointmentRoutes);
-app.use(departmentRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/bills", billRoutes);
+app.use("/api/medical_records", medicalRecordRoutes);
+app.use("/api/staffs", staffRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/departments", departmentRoutes);
 
 app.use(notFound);
 app.use(catchErrors);

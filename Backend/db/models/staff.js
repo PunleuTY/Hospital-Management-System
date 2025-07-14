@@ -50,8 +50,8 @@ export default (sequelize, DataTypes) => {
       freezeTableName: true,
       underscored: true,
       timestamps: true,
-      createAt: false,
-      updateAt: "last_modified",
+      createdAt: false,
+      updatedAt: "last_modified",
     }
   );
   Staff.associate = (models) => {
@@ -67,18 +67,12 @@ export default (sequelize, DataTypes) => {
       foreignKey: "doctor_id",
       as: "team",
     });
-    Staff.belongsToMany(models.Patient, {
-      through: models.Appointment,
-      foreignKey: "staff_id",
-      otherKey: "patient_id",
-      as: "patients",
-    });
     Staff.hasMany(models.Appointment, {
-      foreignKey: "staff_id",
+      foreignKey: "doctor_id",
       as: "appointments",
     });
     Staff.hasMany(models.Billing, {
-      foreignKey: "staff_id",
+      foreignKey: "receptionistId",
       as: "billings",
     });
   };

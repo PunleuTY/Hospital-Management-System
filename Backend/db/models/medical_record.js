@@ -40,7 +40,9 @@ export default (sequelize, DataTypes) => {
       tableName: "medical_record",
       freezeTableName: true,
       underscored: true,
-      timestamp: true,
+      timestamps: true,
+      createdAt: false,
+      updatedAt: "last_modified",
     }
   );
 

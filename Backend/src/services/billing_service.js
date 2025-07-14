@@ -1,24 +1,66 @@
 import db from "../../db/models/index.js";
-const { Billing } = db;
+const { Billing, Staff, Patient } = db;
 
-export const listBills = async () => {
+export const listBills = ({ limit, offset }) =>
   Billing.findAndCountAll({
+    limit,
+    offset,
     order: [["billing_id", "ASC"]],
+    attributes: [
+      "billId",
+      "treatmentFee",
+      "medicationFee",
+      "labTestFee",
+      "consultationFee",
+      "totalAmount",
+      "paymentStatus",
+      "patientId",
+      "receptionistId",
+    ],
+    include: [
+      {
+        model: Patient,
+        as: "patient",
+        attributes: ["patientId", "firstName", "lastName"],
+      },
+      {
+        model: Staff,
+        as: "receptionist",
+        attributes: ["staffId", "firstName", "lastName"],
+      },
+    ],
   });
-};
 
-export const findBillById = async (id) => {
-  Billing.findByOk(id);
-};
+export const findBillById = (id) =>
+  Billing.findByPk(id, {
+    attributes: [
+      "billId",
+      "treatmentFee",
+      "medicationFee",
+      "labTestFee",
+      "consultationFee",
+      "totalAmount",
+      "paymentStatus",
+      "patientId",
+      "receptionistId",
+    ],
+    include: [
+      {
+        model: Patient,
+        as: "patient",
+        attributes: ["patientId", "firstName", "lastName"],
+      },
+      {
+        model: Staff,
+        as: "receptionist",
+        attributes: ["staffId", "firstName", "lastName"],
+      },
+    ],
+  });
 
-export const createBillSv = async (billData) => {
-  Billing.create(billData);
-};
+export const createBillSv = (billData) => Billing.create(billData);
 
-export const updateBillSv = async (id, billData) => {
-  Billing.update(billData, { where: { billing_id: id } });
-};
+export const updateBillSv = (id, billData) =>
+  Billing.update(billData, { where: { billId: id } });
 
-export const deleteBillSv = async (id) => {
-  Billing.destroy({ where: { billing_id: id } });
-};
+export const deleteBillSv = (id) => Billing.destroy({ where: { billId: id } });
