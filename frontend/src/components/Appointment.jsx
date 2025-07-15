@@ -1,146 +1,319 @@
-import { useState } from 'react';
-import Button from './Common/Button'; 
-import Input from './Common/Input';
-import AddAppointment from './Form/addAppointment.jsx';
-import PageBlurWrapper from './Common/Blur-wrapper.jsx'
-import ModalWrapper from './Common/Modal-wrapper.jsx';
-import Dropdown from './Common/Dropdown.jsx';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Common/Table.jsx';
+// React hooks
+import { useState, useEffect } from "react";
+
+// Common components
+import Button from "./common/Button.jsx";
+import Input from "./common/Input.jsx";
+import PageBlurWrapper from "./common/Blur-wrapper.jsx";
+import ModalWrapper from "./common/Modal-wrapper.jsx";
+import Dropdown from "./common/Dropdown.jsx";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./common/Table.jsx";
+import Pagination from "./common/Pagination.jsx";
+
+// Form components
+import AddAppointment from "./form/addAppointment.jsx";
+import AppointmentView from "./view/AppointmentView.jsx";
+
+// Icons
 import { TiDelete } from "react-icons/ti";
 
+// API services
+import {
+  getAllAppointments,
+  createAppointment,
+} from "../service/appointmentAPI.js";
+import { deleteAppointment as deleteAppointmentAPI } from "../service/appointmentAPI.js";
+import patient from "../../../Backend/db/models/patient.js";
+
 export default function Appointment() {
+  // ===== STATE MANAGEMENT =====
   const [filterDate, setFilterDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-  const [appointments, setAppointments] = useState([
-    {
-      id: "A001",
-      patient: "PAT001",
-      doctor: "DOC001",
-      date: "2024-01-16",
-      time: "09:00",
-      status: "Confirmed",
-    },
-    {
-      id: "A002",
-      patient: "PAT002",
-      doctor: "DOC002",
-      date: "2024-01-16",
-      time: "10:30",
-      status: "Pending",
-    },
-    {
-      id: "A003",
-      patient: "PAT003",
-      doctor: "DOC003",
-      date: "2024-01-17",
-      time: "14:00",
-      status: "Confirmed",
-    },
-    {
-      id: "A004",
-      patient: "PAT004",
-      doctor: "DOC004",
-      date: "2024-01-17",
-      time: "15:30",
-      status: "Cancelled",
-    },
-  ]);
+  const [appointments, setAppointments] = useState([]);
+  const [metaData, setMetaData] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  // Add appointment handler
-  const handleAddAppointment = (newAppointment) => {
-    setAppointments((prev) => [...prev, newAppointment]);
+  const itemsPerPage = 10;
+
+  // ===== CONSTANTS =====
+  const header = [
+    "Id",
+    "Patient",
+    "Doctor",
+    "Date",
+    "Time",
+    "Purpose",
+    "Status",
+    "Actions",
+  ];
+
+  const mockData = [
+    {
+      appointmentId: 1,
+      purpose: "Annual Physical Examination",
+      dateTime: "2025-07-15T09:00:00Z",
+      status: "Scheduled",
+      doctorId: 3,
+      patientId: 1,
+      lastModified: "2025-07-12T10:30:00Z",
+    },
+    {
+      appointmentId: 2,
+      purpose: "Follow-up Consultation",
+      dateTime: "2025-07-15T10:30:00Z",
+      status: "Completed",
+      doctorId: 5,
+      patientId: 2,
+      lastModified: "2025-07-11T14:20:00Z",
+    },
+    {
+      appointmentId: 3,
+      purpose: "Blood Pressure Check",
+      dateTime: "2025-07-15T11:15:00Z",
+      status: "Scheduled",
+      doctorId: 7,
+      patientId: 3,
+      lastModified: "2025-07-12T08:45:00Z",
+    },
+    {
+      appointmentId: 4,
+      purpose: "Diabetes Management",
+      dateTime: "2025-07-15T14:00:00Z",
+      status: "Completed",
+      doctorId: 3,
+      patientId: 4,
+      lastModified: "2025-07-12T13:30:00Z",
+    },
+    {
+      appointmentId: 5,
+      purpose: "Skin Rash Examination",
+      dateTime: "2025-07-16T09:30:00Z",
+      status: "Scheduled",
+      doctorId: 9,
+      patientId: 5,
+      lastModified: "2025-07-12T16:10:00Z",
+    },
+    {
+      appointmentId: 6,
+      purpose: "Chest Pain Consultation",
+      dateTime: "2025-07-16T10:45:00Z",
+      status: "Cancelled",
+      doctorId: 5,
+      patientId: 6,
+      lastModified: "2025-07-11T09:15:00Z",
+    },
+    {
+      appointmentId: 7,
+      purpose: "Vaccination",
+      dateTime: "2025-07-16T11:30:00Z",
+      status: "Completed",
+      doctorId: 7,
+      patientId: 7,
+      lastModified: "2025-07-11T11:45:00Z",
+    },
+    {
+      appointmentId: 8,
+      purpose: "Pregnancy Check-up",
+      dateTime: "2025-07-16T14:15:00Z",
+      status: "Scheduled",
+      doctorId: 11,
+      patientId: 8,
+      lastModified: "2025-07-12T12:20:00Z",
+    },
+  ];
+
+  // ===== UTILITY FUNCTIONS =====
+  const extractDateTime = (dateTimeStr) => {
+    const dateObj = new Date(dateTimeStr);
+
+    const date = dateObj.toISOString().split("T")[0]; // "2025-07-16"
+    const time = dateObj.toISOString().split("T")[1].split("Z")[0]; // "14:15:00"
+
+    return { date, time };
   };
 
-  // Change status handler
+  // ===== API FUNCTIONS =====
+  const fetchAllAppointment = async (page = 1, limit = 10) => {
+    try {
+      const response = await getAllAppointments(page, limit);
+      setAppointments(response.data.data);
+      setMetaData(response.data.meta);
+    } catch (err) {
+      console.error("Failed to fetch appointments:", err.message);
+    }
+  };
+
+  const deleteAppointment = async (id) => {
+    try {
+      await deleteAppointmentAPI(id);
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      console.error("Failed to delete appointment:", err.message);
+    }
+  };
+
+  // ===== EVENT HANDLERS =====
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const openViewModal = (record) => {
+    console.log("Opening view modal with record:", record);
+    setSelectedRecord(record);
+    setIsViewModalOpen(true);
+    console.log("Modal state set to:", true);
+  };
+
+  const closeViewModal = () => {
+    setSelectedRecord(null);
+    setIsViewModalOpen(false);
+  };
+
+  const handleAddAppointment = async (formData) => {
+    try {
+      console.log("Creating appointment:", formData);
+      const response = await createAppointment(formData);
+      console.log("Appointment created successfully:", response);
+
+      // Refresh the appointment list
+      fetchAllAppointment(currentPage, itemsPerPage);
+
+      // Close the modal
+      closeModal();
+    } catch (error) {
+      console.error("Failed to create appointment:", error);
+    }
+  };
+
   const handleStatusChange = (id, newStatus) => {
     setAppointments((prev) =>
-      prev.map((a) =>
-        a.id === id ? { ...a, status: newStatus } : a
-      )
+      prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
     );
   };
 
-  // Filter logic
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesDate = !filterDate || appointment.date === filterDate;
-    const matchesStatus =
-      !filterStatus ||
-      filterStatus === "All" ||
-      appointment.status.toLowerCase() === filterStatus.toLowerCase();
-    return matchesDate && matchesStatus;
-  });
-
-  const deleteAppointment = (id) => {
-    setAppointments((prev) => prev.filter((a) => a.id !== id));
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchAllAppointment(page, itemsPerPage);
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
+  // ===== EFFECTS =====
+  useEffect(() => {
+    fetchAllAppointment(currentPage, itemsPerPage);
+  }, [currentPage]);
 
+  // ===== RENDER =====
   return (
-    <div className='min-h-screen bg-gray-50 p-6'>
-      <PageBlurWrapper isBlurred={isModalOpen}>
-        <div className='max-w-7xl mx-auto'>
-          {/*Header*/}
-          <div className='flex items-center justify-between mb-4'>
-            <h1 className='text-3xl font-bold'>Appointments</h1>
-            <Button 
-              content={"Book Appointment"}
-              onClick={openModal}
-            />
+    <div className="h-full overflow-auto p-3">
+      {/* Main content with blur effect when modal is open */}
+      <PageBlurWrapper isBlurred={isModalOpen || isViewModalOpen}>
+        <div className="w-full flex flex-col gap-3 px-1">
+          {/* Header section */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Appointments</h1>
+            <Button content={"Book Appointment"} onClick={openModal} />
           </div>
 
-          {/*Filter Date and Status*/}
-          <div className='flex gap-4 mb-2'>
-            <div className='relative w-40'>
+          {/* Filters section */}
+          <div className="flex gap-4">
+            <div className="relative w-40 cursor-pointer">
               <Input
+                className="cursor-pointer"
                 type="date"
                 value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)} />
+                onChange={(e) => setFilterDate(e.target.value)}
+              />
             </div>
-            <div className='relative z-11'>
+            <div className="relative z-11">
               <Dropdown
                 options={["All", "Pending", "Confirmed", "Cancelled"]}
-                defaultLabel='Filter by Status'
+                defaultLabel="Filter by Status"
                 value={filterStatus}
                 onSelect={(option) => setFilterStatus(option)}
               />
             </div>
           </div>
 
-          {/*Tables*/}
-          <div className='bg-white shadow-md rounded-lg mt-6 '>
-            <Table>
+          {/* Table section - Scrollable container with hidden scrollbar */}
+          <div
+            className="overflow-x-auto scrollbar-hide rounded-lg"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <Table className="min-w-[900px] w-full">
+              {/* Table header */}
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">APPOINTMENT ID</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">PATIENT</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">DOCTOR</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">DATE</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">TIME</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">STATUS</TableHead>
-                  <TableHead className="sticky top-0 bg-gray-200 z-10">ACTIONS</TableHead>
+                  {header.map((h, idx) => (
+                    <TableHead
+                      key={idx}
+                      className="text-xs whitespace-nowrap px-4 py-3 min-w-[100px]"
+                    >
+                      {h}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
+
+              {/* Table body */}
               <TableBody>
-                {filteredAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell>{appointment.id}</TableCell>
-                    <TableCell>{appointment.patient}</TableCell>
-                    <TableCell>{appointment.doctor}</TableCell>
-                    <TableCell>{appointment.date}</TableCell>
-                    <TableCell>{appointment.time}</TableCell>
-                    <TableCell>
+                {appointments.map((appointment) => (
+                  <TableRow
+                    key={appointment.appointmentId}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors border border-solid"
+                    onClick={() => openViewModal(appointment)}
+                  >
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                      {appointment.appointmentId}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[150px]">
+                      {appointment.patientId}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[150px]">
+                      {appointment.doctorId}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {extractDateTime(appointment.dateTime).date}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                      {extractDateTime(appointment.dateTime).time}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                      {appointment.purpose}
+                    </TableCell>
+                    <TableCell
+                      className="text-xs px-4 py-3 max-w-[140px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Dropdown
+                        className="w-max z-10"
                         options={["Pending", "Confirmed", "Cancelled"]}
                         value={appointment.status}
-                        onSelect={(value) => handleStatusChange(appointment.id, value)}
+                        defaultLabel={appointment.status}
+                        onClick={(e) => e.stopPropagation()}
+                        onSelect={(value) =>
+                          handleStatusChange(appointment.appointmentId, value)
+                        }
                       />
                     </TableCell>
-                    <TableCell>
-                      <button onClick={() => deleteAppointment(appointment.id)} className='text-red-500 hover:text-red-700'>
-                        <TiDelete className='w-8 h-8' />
+                    <TableCell
+                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() =>
+                          deleteAppointment(appointment.appointmentId)
+                        }
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <TiDelete className="w-6 h-6 cursor-pointer" />
                       </button>
                     </TableCell>
                   </TableRow>
@@ -148,9 +321,17 @@ export default function Appointment() {
               </TableBody>
             </Table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={metaData.totalPages || 1}
+            totalItems={metaData.total || 0}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+          />
         </div>
       </PageBlurWrapper>
 
+      {/* Add Appointment Modal */}
       <ModalWrapper
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -159,8 +340,35 @@ export default function Appointment() {
         closeOnBackdropClick={true}
         closeOnEscape={true}
       >
-        <AddAppointment onClose={closeModal} onAddAppointment={handleAddAppointment} />
+        <AddAppointment
+          onClose={closeModal}
+          onAddAppointment={handleAddAppointment}
+        />
       </ModalWrapper>
+
+      {/* View Appointment Details Modal */}
+      <ModalWrapper
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        size="lg"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        {selectedRecord && <AppointmentView data={selectedRecord} />}
+      </ModalWrapper>
+
+      {/* Global CSS to hide scrollbar */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+          height: 0;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
     </div>
   );
 }

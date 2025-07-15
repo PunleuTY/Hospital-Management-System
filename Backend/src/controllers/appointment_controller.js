@@ -4,6 +4,7 @@ import {
   updateAppointmentSv,
   deleteAppointmentSv,
   findAppointmentById,
+  getUpcomingScheduledAppointments,
 } from "../services/appointment_service.js";
 import { success, fail } from "../utils/response.js";
 
@@ -58,6 +59,23 @@ export const deleteAppointment = async (req, res) => {
       return res.status(404).json({ status: "error", message: "Not Found" });
     return success(res, { deleted: rows });
   } catch (err) {
+    return fail(res, err);
+  }
+};
+export const getUpcomingAppointments = async (req, res) => {
+  try {
+    const appointments = await getUpcomingScheduledAppointments();
+    return success(res, {
+      data: appointments,
+      meta: {
+        total: appointments.length,
+        limit: 10,
+        status: "scheduled",
+        type: "upcoming",
+      },
+    });
+  } catch (err) {
+    console.error("getUpcomingAppointments error:", err);
     return fail(res, err);
   }
 };

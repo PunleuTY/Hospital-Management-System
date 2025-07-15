@@ -1,14 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HiChevronDown } from "react-icons/hi";
 
 const Dropdown = ({
   options = [],
   defaultLabel = "Select",
   onSelect,
+  className,
+  reset,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  // Reset the dropdown when reset value changes
+  useEffect(() => {
+    if (reset) {
+      setSelected(null);
+      setIsOpen(false);
+    }
+  }, [reset]);
 
   const handleSelect = (option) => {
     setSelected(option);
@@ -17,11 +27,11 @@ const Dropdown = ({
   };
 
   return (
-    <div className="relative inline-block w-60">
+    <div className={`relative inline-block w-60 ${className}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black tween ${
+        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-black tween ${
           selected ? "text-gray-800" : "text-gray-400"
         }`}
       >

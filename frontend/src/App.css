@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "@/style/CommonComponent.css";
-/* @import "tw-animate-css"; */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,12 +8,14 @@
 
 html,
 body {
-  @apply h-full w-full min-w-[300px] p-0 m-0;
+  @apply h-screen w-screen min-w-[300px] p-0 m-0 overflow-hidden;
 }
 
 #root {
   display: flex;
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 @theme inline {
@@ -148,5 +148,16 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
   }
 }

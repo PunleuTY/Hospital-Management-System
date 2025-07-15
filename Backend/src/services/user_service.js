@@ -1,4 +1,5 @@
 import db from "../../db/models/index.js";
+import sequelize from "../../db/config/db_config.js";
 const { User, Role } = db;
 
 // Find user with role information
@@ -29,7 +30,7 @@ export const findUserById = (id) => {
 };
 
 // Get all users with roles
-export const listUsers = async () => {
+export const getAllUsers = async () => {
   try {
     const users = await User.findAll({
       include: [
@@ -46,6 +47,71 @@ export const listUsers = async () => {
     return users;
   } catch (error) {
     console.error("Error in listUsers:", error);
+    throw error;
+  }
+};
+
+export const getUsersByRole = async () => {
+  try {
+    const usersByRole = await User.findAll({
+      attributes: [
+        // Fix: Use the correct table alias "Users" instead of "User"
+        [sequelize.fn("COUNT", sequelize.col("Users.user_id")), "userCount"],
+      ],
+      include: [
+        {
+          model: Role,
+          as: "role",
+          attributes: ["role_id", "role_name"],
+        },
+      ],
+      group: ["role.role_id", "role.role_name"],
+      order: [["role", "role_name", "ASC"]],
+    });
+
+    return usersByRole;
+  } catch (error) {
+    console.error("Error in getUsersByRole:", error);
+    throw error;
+  }
+};
+
+// Fixed version of getUserStatistics
+export const getUserStatistics = async () => {
+  try {
+    // Get total users
+    const totalUsers = await User.count();
+
+    // Get users by role with correct column reference
+    const usersByRole = await User.findAll({
+      attributes: [
+        // Fix: Use "Users.user_id" to match the table alias
+        [sequelize.fn("COUNT", sequelize.col("Users.user_id")), "userCount"],
+      ],
+      include: [
+        {
+          model: Role,
+          as: "role",
+          attributes: ["role_id", "role_name"],
+        },
+      ],
+      group: ["role.role_id", "role.role_name"],
+      order: [["role", "role_name", "ASC"]],
+    });
+
+    // Format the response
+    const roleStatistics = usersByRole.map((item) => ({
+      roleId: item.role.role_id,
+      roleName: item.role.role_name,
+      userCount: parseInt(item.dataValues.userCount),
+    }));
+
+    return {
+      totalUsers,
+      roleStatistics,
+    };
+  } catch (error) {
+    console.error("Error in getUserStatistics:", error);
     throw error;
   }
 };

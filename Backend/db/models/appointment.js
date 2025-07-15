@@ -39,23 +39,18 @@ export default (sequelize, DataTypes) => {
       timestamps: true,
       createdAt: false,
       updatedAt: "last_modified",
-      underscored: true,
     }
   );
 
   // Association
   Appointment.associate = (models) => {
     Appointment.belongsTo(models.Patient, {
-      foreignKey: "patientId",
+      foreignKey: "patient_id",
       as: "patient",
     });
     Appointment.belongsTo(models.Staff, {
-      foreignKey: "doctorId",
+      foreignKey: "doctor_id",
       as: "doctor",
-    });
-    Appointment.hasMany(models.Medical_record, {
-      foreignKey: "appointmentId",
-      as: "medicalRecords",
     });
   };
 

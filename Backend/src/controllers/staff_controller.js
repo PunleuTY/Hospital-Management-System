@@ -5,6 +5,7 @@ import {
   createStaffSv,
   updateStaffSv,
   deleteStaffSv,
+  getAllDoctorId,
 } from "../services/staff_service.js";
 
 export const getAllStaff = async (req, res) => {
@@ -64,6 +65,16 @@ export const deleteStaff = async (req, res) => {
     }
     return success(res, { deleted: rows });
   } catch (err) {
+    return fail(res, err);
+  }
+};
+
+export const allDoctorId = async (req, res) => {
+  try {
+    const doctorsId = await getAllDoctorId();
+    return success(res, { data: doctorsId });
+  } catch (err) {
+    console.error("Error fetching doctor IDs:", err);
     return fail(res, err);
   }
 };

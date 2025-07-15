@@ -7,6 +7,7 @@ import {
   createStaff,
   updateStaff,
   deleteStaff,
+  allDoctorId,
 } from "../controllers/staff_controller.js";
 
 // Router for get all staff members
@@ -14,6 +15,8 @@ router.get("/", getAllStaff);
 
 // Router for get staff member by id
 router.get("/:id", getStaffById);
+
+router.get("/doctors/id", allDoctorId);
 
 // Router for create staff member
 router.post("/", createStaff);

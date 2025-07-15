@@ -56,7 +56,6 @@ export default (sequelize, DataTypes) => {
       timestamps: true,
       createdAt: false,
       updatedAt: "last_modified",
-      underscored: true,
     }
   );
   Billing.associate = (models) => {

@@ -8,6 +8,8 @@ import { FiUserCheck } from "react-icons/fi";
 import { FiFileText } from "react-icons/fi"; // Medical Record
 import { IoMdPersonAdd } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { getUser } from "../utils/auth";
+import { filterNavigationByRole } from "../utils/rolePermissions";
 
 const navigateContent = [
   {
@@ -56,10 +58,29 @@ const navigateContent = [
 
 export default function Navigations({ sideBarOpen, setSideBarOpen }) {
   const [selected, setSelected] = useState(null);
-  const [content, setContent] = useState(navigateContent);
+  const [content, setContent] = useState([]);
   const [width, setWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
   const sidebarRef = useRef(null);
+
+  // Initialize navigation based on user role
+  useEffect(() => {
+    const user = getUser();
+    const userRole = user?.role?.roleName;
+
+    console.log("Current user:", user);
+    console.log("User role:", userRole);
+
+    // Filter navigation items based on role
+    const filteredNavigation = filterNavigationByRole(
+      navigateContent,
+      userRole
+    );
+
+    console.log("Filtered navigation:", filteredNavigation);
+
+    setContent(filteredNavigation);
+  }, []);
 
   const handleSelect = (index) => {
     if (width <= 768) {
@@ -114,7 +135,7 @@ export default function Navigations({ sideBarOpen, setSideBarOpen }) {
     <>
       {sideBarOpen && (
         <div
-          className={`w-[300px] border border-(--color-light-gray) overflow-hidden ${
+          className={`w-[300px] border border-(--color-light-gray) h-full overflow-hidden ${
             width <= 768
               ? "fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50"
               : ""
@@ -130,6 +151,10 @@ export default function Navigations({ sideBarOpen, setSideBarOpen }) {
             <div className="flex flex-col">
               <p className="font-semibold text-[18px]">HMS</p>
               <p className="text-gray-600 text-[14px]">Hospital Management</p>
+              {/* Display current user role */}
+              <p className="text-blue-600 text-[12px] font-medium">
+                Role: {getUser()?.role?.roleName || "Unknown"}
+              </p>
             </div>
           </div>
           <div className="h-full pt-10 pl-6 pr-5 text-[15px] text-(--color-gray)">

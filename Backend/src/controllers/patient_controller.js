@@ -45,6 +45,7 @@ export const createPatient = async (req, res) => {
     const patient = await createPatientSv(req.body);
     return success(res, patient, 201);
   } catch (err) {
+    console.error("Error Creating:", err);
     return fail(res, err);
   }
 };
@@ -71,6 +72,17 @@ export const deletePatient = async (req, res) => {
     }
     return success(res, { deleted: rows });
   } catch (err) {
+    console.error("Error Creating:", err);
+    return fail(res, err);
+  }
+};
+
+export const allPatientId = async (req, res) => {
+  try {
+    const patientsId = await getAllPatientId();
+    return success(res, { data: patientsId });
+  } catch (err) {
+    console.error("Error fetching patient IDs:", err);
     return fail(res, err);
   }
 };

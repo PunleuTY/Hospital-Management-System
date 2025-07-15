@@ -4,6 +4,10 @@ import {
   createBillSv,
   updateBillSv,
   deleteBillSv,
+  getTotalAmountPaid,
+  getTotalAmountUnpaid,
+  getTotalBillsCount,
+  getTotalUnpaidCount,
 } from "../services/billing_service.js";
 import { success, fail } from "../utils/response.js";
 
@@ -24,6 +28,7 @@ export const getAllBills = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error(err);
     return fail(res, err);
   }
 };
@@ -76,6 +81,24 @@ export const deleteBill = async (req, res) => {
     }
     return success(res, { message: "Bill deleted successfully" });
   } catch (err) {
+    return fail(res, err);
+  }
+};
+
+export const summaryBilling = async (req, res) => {
+  try {
+    const totalPaid = await getTotalAmountPaid();
+    const totalUnpaid = await getTotalAmountUnpaid();
+    const totalBills = await getTotalBillsCount();
+    const totalUnpaidCount = await getTotalUnpaidCount();
+    return success(res, {
+      totalPaid,
+      totalUnpaid,
+      totalBills,
+      totalUnpaidCount,
+    });
+  } catch (err) {
+    console.error(err);
     return fail(res, err);
   }
 };

@@ -1,353 +1,315 @@
-import React, { useState, useEffect } from "react";
+// React hooks
+import { useState, useMemo, useEffect } from "react";
+
+// Common components
+import Button from "./common/Button.jsx";
+import SearchBar from "./common/SearchBar.jsx";
+import PageBlurWrapper from "./common/Blur-wrapper.jsx";
+import ModalWrapper from "./common/Modal-wrapper.jsx";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./common/Table.jsx";
+import Pagination from "./common/Pagination.jsx";
+import { success, error } from "./utils/toast.js";
+
+// Form components
+import AddPatient from "./form/addPatient.jsx";
+import PatientView from "./view/PatientView.jsx";
+
+// Icons
+import { TiDelete } from "react-icons/ti";
+
+// API services
+import {
+  getAllPatients,
+  createPatient,
+  updatePatient,
+  deletePatient,
+} from "../service/patientAPI.js";
 
 export default function Patient() {
-  const initialState = {
-    patient_id: "",
-    last_name: "",
-    first_name: "",
-    gender: "",
-    height: "",
-    weight: "",
-    date_of_birth: "",
-    address: "",
-    contact: "",
-    email: "",
-    doctor_id: "",
-  };
-
   const [patients, setPatients] = useState([]);
-  const [patientHistory, setPatientHistory] = useState([]);
-  const [formData, setFormData] = useState(initialState);
-  const [editing, setEditing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [metaData, setMetaData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const itemsPerPage = 10;
+
+  const mockData = [
+    {
+      patientId: 1,
+      lastName: "Johnson",
+      firstName: "Emma",
+      height: 1.65,
+      weight: 58.3,
+      dateOfBirth: "1990-04-12",
+      address: "245 Riverside Drive, Phnom Penh, Cambodia",
+      contact: "+855 12 456 789",
+      email: "emma.johnson@email.com",
+    },
+    {
+      patientId: 2,
+      lastName: "Chen",
+      firstName: "David",
+      height: 1.78,
+      weight: 72.8,
+      dateOfBirth: "1985-08-23",
+      address: "157 Golden Street, Siem Reap, Cambodia",
+      contact: "+855 17 892 345",
+      email: "david.chen@email.com",
+    },
+    {
+      patientId: 3,
+      lastName: "Rodriguez",
+      firstName: "Sofia",
+      height: 1.62,
+      weight: 54.7,
+      dateOfBirth: "1993-11-07",
+      address: "89 Mekong Avenue, Battambang, Cambodia",
+      contact: "+855 98 234 567",
+      email: "sofia.rodriguez@email.com",
+    },
+    {
+      patientId: 4,
+      lastName: "Thompson",
+      firstName: "Marcus",
+      height: 1.82,
+      weight: 85.2,
+      dateOfBirth: "1988-02-15",
+      address: "312 Temple Road, Kampot, Cambodia",
+      contact: "+855 77 678 912",
+      email: "marcus.thompson@email.com",
+    },
+    {
+      patientId: 5,
+      lastName: "Patel",
+      firstName: "Aria",
+      height: 1.58,
+      weight: 51.9,
+      dateOfBirth: "1995-06-30",
+      address: "76 Lotus Lane, Kep, Cambodia",
+      contact: "+855 16 345 678",
+      email: "aria.patel@email.com",
+    },
+  ];
+
+  const fetchAllPatient = async (page = 1, limit = 10) => {
+    try {
+      const patients = await getAllPatients(page, limit);
+      setPatients(patients.data.data);
+      setMetaData(patients.data.meta);
+    } catch (err) {
+      console.error("Failed to fetch patients:", err.message);
+    }
+  };
+
+  const openModal = () => {
+    console.log("Opening patient modal");
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    console.log("Closing patient modal");
+    setIsModalOpen(false);
+  };
+
+  const openViewModal = (record) => {
+    setSelectedRecord(record);
+    setIsViewModalOpen(true);
+  };
+
+  const closeViewModal = () => {
+    setSelectedRecord(null);
+    setIsViewModalOpen(false);
+  };
+
+  const handleAddPatient = async (formData) => {
+    try {
+      console.log("Creating patient:", formData);
+      const response = await createPatient(formData);
+      console.log("Patient created successfully:", response);
+
+      // Refresh the patient list
+      fetchAllPatient(currentPage, itemsPerPage);
+
+      // Close the modal
+      closeModal();
+    } catch (error) {
+      console.error("Failed to create patient:", error);
+      // You can add toast notification here
+    }
+  };
+
+  const handleDeletePatient = async (patientId) => {
+    try {
+      const response = await deletePatient(patientId);
+      console.log("Patient deleted successfully:", response);
+      fetchAllPatient(currentPage, itemsPerPage);
+    } catch (err) {
+      console.error("Failed to delete patient:", err.message);
+      error("Failed to delete patient");
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchAllPatient(page, itemsPerPage);
+  };
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("patients")) || [];
-    setPatients(stored);
-
-    const history = JSON.parse(localStorage.getItem("patientHistory")) || [];
-    setPatientHistory(history);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("patients", JSON.stringify(patients));
-  }, [patients]);
-
-  useEffect(() => {
-    localStorage.setItem("patientHistory", JSON.stringify(patientHistory));
-  }, [patientHistory]);
-
-  const validateEmail = (email) => {
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return pattern.test(email);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "email") {
-      setEmailError(validateEmail(value) ? "" : "Invalid email format");
-    }
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const generatePatientId = () => {
-    const existingIds = patients.map((p) => p.patient_id);
-    let maxNumber = 0;
-
-    existingIds.forEach((id) => {
-      const number = parseInt(id.replace("P", ""), 10);
-      if (!isNaN(number) && number > maxNumber) {
-        maxNumber = number;
-      }
-    });
-
-    const nextNumber = maxNumber + 1;
-    return `P${String(nextNumber).padStart(3, "0")}`;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validateEmail(formData.email)) {
-      setEmailError("Invalid email format");
-      return;
-    }
-
-    if (editing) {
-      setPatients((prev) =>
-        prev.map((p) => (p.patient_id === formData.patient_id ? formData : p))
-      );
-    } else {
-      const newPatient = {
-        ...formData,
-        patient_id: generatePatientId(),
-      };
-      setPatients((prev) => [...prev, newPatient]);
-      setPatientHistory((prev) => [...prev, newPatient]);
-    }
-
-    setFormData(initialState);
-    setEditing(false);
-    setShowForm(false);
-  };
-
-  const handleEdit = (patient) => {
-    setFormData(patient);
-    setEditing(true);
-    setShowForm(true);
-    setEmailError("");
-  };
-
-  const handleDelete = (id) => {
-    setPatients((prev) => prev.filter((p) => p.patient_id !== id));
-    if (formData.patient_id === id) {
-      setFormData(initialState);
-      setEditing(false);
-    }
-  };
-
-  const handleView = (patient) => {
-    alert(JSON.stringify(patient, null, 2));
-  };
-
-  const handleCancel = () => {
-    setFormData(initialState);
-    setEditing(false);
-    setShowForm(false);
-    setEmailError("");
-  };
-
-  const handleSearch = () => {
-    setActiveSearch(searchTerm);
-  };
-
-  const filteredPatients = patients.filter((p) =>
-    Object.values(p)
-      .join(" ")
-      .toLowerCase()
-      .includes(activeSearch.toLowerCase())
-  );
+    fetchAllPatient(currentPage, itemsPerPage);
+  }, [currentPage]);
 
   return (
-    <div className="p-4 relative">
-      <h1 className="text-xl font-bold mb-4">Patient Management</h1>
-
-      {/* Top Button Row */}
-      <div className="flex justify-between mb-4">
-        <div className="flex w-full gap-2">
-          <input
-            type="text"
-            placeholder="Search by name, email, ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
-          />
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-gray-600 text-white rounded"
-          >
-            Search
-          </button>
-        </div>
-        <div className="flex gap-2 ml-4">
-          <button
-            onClick={() => setShowHistory(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded"
-          >
-            History
-          </button>
-          <button
-            onClick={() => {
-              setFormData(initialState);
-              setEditing(false);
-              setShowForm(true);
-              setEmailError("");
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Add Patient
-          </button>
-        </div>
-      </div>
-
-      {/* Add/Edit Patient Modal */}
-      {showForm && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-10">
-          <div className="bg-white p-6 rounded shadow-md w-[90%] max-w-3xl">
-            <h2 className="text-lg font-semibold mb-4">
-              {editing ? "Edit Patient" : "Add Patient"}
-            </h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-              {Object.keys(initialState)
-                .filter((key) => key !== "patient_id")
-                .map((key) => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium mb-1">
-                      {key.replace(/_/g, " ")}
-                    </label>
-                    {key === "gender" ? (
-                      <select
-                        className="w-full p-2 border border-gray-300 rounded"
-                        name={key}
-                        value={formData[key]}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                      </select>
-                    ) : (
-                      <input
-                        className="w-full p-2 border border-gray-300 rounded"
-                        type={key === "date_of_birth" ? "date" : "text"}
-                        name={key}
-                        value={formData[key]}
-                        onChange={handleChange}
-                        required
-                      />
-                    )}
-                    {key === "email" && emailError && (
-                      <p className="text-red-600 text-sm">{emailError}</p>
-                    )}
-                  </div>
-                ))}
-              <div className="col-span-2 flex justify-end gap-2 mt-4">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded"
-                  disabled={emailError !== ""}
-                >
-                  {editing ? "Update" : "Add"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-4 py-2 bg-gray-500 text-white rounded"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+    <div className="h-full overflow-auto p-3">
+      <PageBlurWrapper isBlurred={isModalOpen}>
+        <div className="w-full flex flex-col gap-3 px-1">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Patients</h1>
+            <Button content={"Add Patient"} onClick={openModal} />
           </div>
-        </div>
-      )}
 
-      {/* History Modal */}
-      {showHistory && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-white p-6 rounded shadow-md w-[90%] max-w-4xl max-h-[90vh] overflow-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Patient History</h2>
-              <button
-                onClick={() => setShowHistory(false)}
-                className="text-red-600 hover:underline"
-              >
-                Close
-              </button>
-            </div>
-            <table className="w-full table-auto border-collapse border border-gray-300 text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  {Object.keys(initialState).map((key) => (
-                    <th key={key} className="border p-2 capitalize">
-                      {key.replace(/_/g, " ")}
-                    </th>
+          <div>
+            <SearchBar
+              placeholder="Search patients..."
+              value={searchTerm}
+              className="w-full"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div
+            className="overflow-x-auto scrollbar-hide rounded-lg overflow-y-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <Table className="min-w-[900px] w-full">
+              <TableHeader>
+                <TableRow>
+                  {[
+                    "ID",
+                    "First Name",
+                    "Last Name",
+                    "Hieght (m)",
+                    "Weight (kg)",
+                    "Date of Birth",
+                    "Address",
+                    "Contact",
+                    "Email",
+                    "Action",
+                  ].map((h) => (
+                    <TableHead
+                      key={h}
+                      className="text-xs whitespace-nowrap px-4 py-3 min-w-[100px]"
+                    >
+                      {h}
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {patientHistory.length === 0 ? (
-                  <tr>
-                    <td colSpan="12" className="text-center p-4">
-                      No history found.
-                    </td>
-                  </tr>
-                ) : (
-                  patientHistory.map((p, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      {Object.keys(initialState).map((key) => (
-                        <td key={key} className="border p-2">
-                          {p[key]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {patients.map((p) => (
+                  <TableRow
+                    key={p.patientId}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <TableCell
+                      onClick={() => openViewModal(p)}
+                      className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]"
+                    >
+                      {p.patientId}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.lastName}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.firstName}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.height}m
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.weight}kg
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.dateOfBirth}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.address}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[140px]">
+                      {p.contact}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[200px]">
+                      {p.email}
+                    </TableCell>
+                    <TableCell
+                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleDeletePatient(p.patientId)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <TiDelete className="w-6 h-6 cursor-pointer" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        </div>
-      )}
 
-      {/* Patients Table */}
-      <table className="w-full table-auto border-collapse border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Patient ID</th>
-            <th className="border p-2">Last Name</th>
-            <th className="border p-2">First Name</th>
-            <th className="border p-2">Gender</th>
-            <th className="border p-2">Height (Cm)</th>
-            <th className="border p-2">Weight (Kg)</th>
-            <th className="border p-2">Date of Birth</th>
-            <th className="border p-2">Address</th>
-            <th className="border p-2">Contact</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Doctor ID</th>
-            <th className="border p-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPatients.map((patient) => (
-            <tr key={patient.patient_id} className="hover:bg-gray-50 group">
-              <td className="border p-2">{patient.patient_id}</td>
-              <td className="border p-2">{patient.last_name}</td>
-              <td className="border p-2">{patient.first_name}</td>
-              <td className="border p-2">{patient.gender}</td>
-              <td className="border p-2">{patient.height}</td>
-              <td className="border p-2">{patient.weight}</td>
-              <td className="border p-2">{patient.date_of_birth}</td>
-              <td className="border p-2">{patient.address}</td>
-              <td className="border p-2">{patient.contact}</td>
-              <td className="border p-2">{patient.email}</td>
-              <td className="border p-2">{patient.doctor_id}</td>
-              <td className="border p-2 text-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity space-x-2">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => handleView(patient)}
-                  >
-                    View
-                  </button>
-                  <button
-                    className="text-green-600 hover:underline"
-                    onClick={() => handleEdit(patient)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDelete(patient.patient_id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-          {filteredPatients.length === 0 && (
-            <tr>
-              <td colSpan="12" className="text-center p-4">
-                No patients found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={metaData.totalPages || 1}
+            totalItems={metaData.total || 0}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </PageBlurWrapper>
+
+      <ModalWrapper
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        size="md"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        <AddPatient onClose={closeModal} onAddPatient={handleAddPatient} />
+      </ModalWrapper>
+
+      <ModalWrapper
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        size="lg"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        {selectedRecord && (
+          <PatientView data={selectedRecord} onClose={closeViewModal} />
+        )}
+      </ModalWrapper>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+          height: 0;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
