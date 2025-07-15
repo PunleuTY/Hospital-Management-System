@@ -8,9 +8,17 @@ import {
 import { success, fail } from "../utils/response.js";
 
 export const getAllDepartments = async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.max(1, parseInt(req.query.limit, 10) || 10);
+  const offset = (page - 1) * limit;
+
   try {
-    const depts = await listDepartments();
-    return success(res, depts);
+    const { rows, count } = await listDepartments({ limit, offset });
+    const totalPages = Math.ceil(count / limit);
+    return success(res, {
+      data: rows,
+      meta: { total: count, page, limit, totalPages },
+    });
   } catch (err) {
     return fail(res, err);
   }

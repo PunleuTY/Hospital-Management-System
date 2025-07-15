@@ -1,11 +1,11 @@
 import { React } from "react";
 import { useState } from "react";
-import Button from "../Common/Button";
-import Dropdown from "../Common/Dropdown";
-import Label from "../Common/Label";
-import Input from "../Common/Input";
-import Textarea from "../Common/Textarea";
-import { Card, CardHeader, CardContent } from "../Common/Card";
+import Button from "../common/Button";
+import Dropdown from "../common/Dropdown";
+import Label from "../common/Label";
+import Input from "../common/Input";
+import Textarea from "../common/Textarea";
+import { Card, CardHeader, CardContent } from "../common/Card";
 
 //Icons
 import { FaUserDoctor } from "react-icons/fa6";
@@ -24,7 +24,10 @@ export default function AddMedicalRecord() {
 
   const handlesubmit = (e) => {
     e.preventDefault();
-    alert("Medicalrecord Added Successfully");
+    console.log("Medical record form submitted with data:", formData);
+
+    if (onAddMedicalRecord) onAddMedicalRecord(formData);
+    if (onClose) onClose();
   };
 
   const handleInputChange = (field, value) => {

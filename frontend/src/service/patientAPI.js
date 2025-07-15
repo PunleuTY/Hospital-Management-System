@@ -31,3 +31,8 @@ export const deletePatient = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`);
   return response.data;
 };
+
+export const getAllPatientIds = async () => {
+  const response = await axios.get(`${API_URL}/patients/id`);
+  return response.data.data;
+};

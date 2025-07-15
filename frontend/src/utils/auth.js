@@ -1,18 +1,22 @@
-// Authentication utility functions
+// authentication utility functions
 
+// get token
 export const getToken = () => {
   return localStorage.getItem("token");
 };
 
+// write token to local storage
 export const setToken = (token) => {
   localStorage.setItem("token", token);
 };
 
+// remove token
 export const removeToken = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
 };
 
+// get user from local storage
 export const getUser = () => {
   const user = localStorage.getItem("user");
   try {
@@ -23,6 +27,7 @@ export const getUser = () => {
   }
 };
 
+// write user to local storag
 export const setUser = (user) => {
   localStorage.setItem("user", JSON.stringify(user));
 };

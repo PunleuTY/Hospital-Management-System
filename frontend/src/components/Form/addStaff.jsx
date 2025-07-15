@@ -1,10 +1,10 @@
 import { React } from "react";
 import { useState } from "react";
-import Button from "../Common/Button";
-import Dropdown from "../Common/Dropdown";
-import Label from "../Common/Label";
-import Input from "../Common/Input";
-import { Card, CardHeader, CardContent } from "../Common/Card";
+import Button from "../common/Button";
+import Dropdown from "../common/Dropdown";
+import Label from "../common/Label";
+import Input from "../common/Input";
+import { Card, CardHeader, CardContent } from "../common/Card";
 import { motion } from "framer-motion";
 //Icons
 import { MdOutlineGroups } from "react-icons/md";
@@ -25,18 +25,10 @@ export default function AddStaff({ onClose, onAddStaff }) {
 
   const handlesubmit = (e) => {
     e.preventDefault();
-    const newStaff = {
-      staff_id: `STE${Math.floor(Math.random() * 1000)}`,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      gender: formData.gender,
-      role: formData.role,
-      contact: formData.contact,
-      specialization: formData.specialization,
-      department_id: formData.department_id,
-      doctor_id: formData.doctor_id,
-    };
-    if (onAddStaff) onAddStaff(newStaff);
+    console.log("Staff form submitted with data:", formData);
+
+    // Pass the actual form data
+    if (onAddStaff) onAddStaff(formData);
     if (onClose) onClose();
   };
 
@@ -188,9 +180,10 @@ export default function AddStaff({ onClose, onAddStaff }) {
               {/*Submit Button*/}
               <motion.div className="mt-6">
                 <Button
-                  content={"Create Patient Record"}
-                  type="submit"
+                  content={"Create Staff Record"}
+                  onClick={handlesubmit}
                   className="w-full"
+                  isAddIcon={false}
                 />
               </motion.div>
             </div>

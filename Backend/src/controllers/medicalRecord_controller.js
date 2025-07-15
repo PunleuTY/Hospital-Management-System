@@ -1,47 +1,71 @@
 import {
   listMedicalRecords,
-  createMedicalRecordSv,
   findMedicalRecordById,
+  createMedicalRecordSv,
+  updateMedicalRecordSv,
+  deleteMedicalRecordSv,
 } from "../services/medicalRecord_service.js";
 import { success, fail } from "../utils/response.js";
 
 export const getAllMedicalRecords = async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.max(1, parseInt(req.query.limit) || 10);
+  const offset = (page - 1) * limit;
+
   try {
-    const records = await listMedicalRecords();
-    return success(res, records);
+    const { rows, count } = await listMedicalRecords({ limit, offset });
+    return success(res, {
+      data: rows,
+      meta: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+      },
+    });
   } catch (err) {
+    console.error("getAllMedicalRecords error:", err);
     return fail(res, err);
   }
 };
+
 export const getMedicalRecordById = async (req, res) => {
   try {
     const record = await findMedicalRecordById(req.params.id);
     if (!record) {
       return fail(res, "Medical record not found", 404);
     }
+    return success(res, record);
   } catch (err) {
+    console.error("getMedicalRecordById error:", err);
     return fail(res, err);
   }
 };
+
 export const createMedicalRecord = async (req, res) => {
   try {
     const record = await createMedicalRecordSv(req.body);
     return success(res, record, 201);
   } catch (err) {
+    console.error("createMedicalRecord error:", err);
     return fail(res, err);
   }
 };
+
 export const updateMedicalRecord = async (req, res) => {
   try {
     const [rows] = await updateMedicalRecordSv(req.params.id, req.body);
     if (rows === 0) {
       return fail(res, "Medical record not found or no changes made", 404);
     }
-    return success(res, { updated: rows });
+    const updated = await findMedicalRecordById(req.params.id);
+    return success(res, updated);
   } catch (err) {
+    console.error("updateMedicalRecord error:", err);
     return fail(res, err);
   }
 };
+
 export const deleteMedicalRecord = async (req, res) => {
   try {
     const rows = await deleteMedicalRecordSv(req.params.id);
@@ -50,6 +74,7 @@ export const deleteMedicalRecord = async (req, res) => {
     }
     return success(res, { deleted: rows });
   } catch (err) {
+    console.error("deleteMedicalRecord error:", err);
     return fail(res, err);
   }
 };
