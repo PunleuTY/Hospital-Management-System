@@ -34,12 +34,6 @@ export const NAVIGATION_PERMISSIONS = {
   "Add User": "add_user",
 };
 
-/**
- * Filter navigation items based on user role
- * @param {Array} navigationItems - All navigation items
- * @param {string} userRole - User's role (admin, doctor, nurse, receptionist)
- * @returns {Array} Filtered navigation items
- */
 export const filterNavigationByRole = (navigationItems, userRole) => {
   if (!userRole) {
     return []; // No role, no navigation
@@ -63,14 +57,10 @@ export const filterNavigationByRole = (navigationItems, userRole) => {
   });
 };
 
-/**
- * Check if user has permission for a specific navigation item
- * @param {string} navigationLabel - Navigation item label
- * @param {string} userRole - User's role
- * @returns {boolean} Whether user has permission
- */
 export const hasNavigationPermission = (navigationLabel, userRole) => {
-  if (!userRole) return false;
+  if (!userRole) {
+    return false;
+  }
 
   const normalizedRole = userRole.toLowerCase();
   const allowedPermissions = ROLE_PERMISSIONS[normalizedRole] || [];

@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { Card, CardHeader, CardContent } from "../Common/Card.jsx";
-import Label from "../Common/Label.jsx";
-import Input from "../Common/Input.jsx";
-import Dropdown from "../Common/Dropdown.jsx";
-import Button from "../Common/Button.jsx";
+import { useState, useEffect } from "react";
+import { Card, CardHeader, CardContent } from "../common/Card.jsx";
+import Label from "../common/Label.jsx";
+import Input from "../common/Input.jsx";
+import Dropdown from "../common/Dropdown.jsx";
+import Button from "../common/Button.jsx";
 import { SiReacthookform } from "react-icons/si";
 import { motion } from "framer-motion";
+
+// API imports
+import { getAllPatients, getAllPatientIds } from "../../service/patientAPI.js";
+import { getAllStaffs, getAllDoctorIds } from "../../service/staffAPI.js";
 
 export default function AddAppointment({ onClose, onAddAppointment }) {
   const [formData, setFormData] = useState({
@@ -17,19 +21,66 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
     status: "pending", // default to pending
   });
 
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch patients and doctors when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const allDoctorIds = await getAllDoctorIds();
+        const allPatientIds = await getAllPatientIds();
+        console.log("Fetched patients:", allPatientIds);
+        console.log("Fetched doctors:", allDoctorIds);
+        setPatients(allPatientIds);
+        setDoctors(allDoctorIds);
+      } catch (error) {
+        console.error("Failed to fetch patients and doctors:", error);
+        setPatients([]);
+        setDoctors([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   function handlesubmit(e) {
     e.preventDefault();
-    const newAppointment = {
-      id: `A${Math.floor(Math.random() * 100000)}`,
-      patient: formData.PatientID,
-      doctor: formData.DoctorID,
-      date: formData.preferredDate,
-      time: formData.preferredTime,
-      status: formData.status || "pending",
-      purposeOfVisit: formData.purposeOfVisit,
+
+    console.log("Appointment form submitted with data:", formData);
+
+    // Validation
+    if (
+      !formData.PatientID ||
+      !formData.DoctorID ||
+      !formData.preferredDate ||
+      !formData.preferredTime
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    // Pass the actual form data to the parent component
+    const appointmentData = {
+      patientId: formData.PatientID,
+      doctorId: formData.DoctorID,
+      dateTime: `${formData.preferredDate}T${formData.preferredTime}:00`,
+      purpose: formData.purposeOfVisit,
+      status: formData.status || "scheduled",
     };
-    if (onAddAppointment) onAddAppointment(newAppointment);
-    if (onClose) onClose();
+
+    console.log("Sending appointment data:", appointmentData);
+
+    if (onAddAppointment) {
+      onAddAppointment(appointmentData);
+    }
+    if (onClose) {
+      onClose();
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -81,7 +132,8 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
                 <div>
                   <Label required>Time</Label>
                   <Input
-                    placeholder="Appointment Time (24:00)"
+                    type="time"
+                    placeholder="Select appointment time"
                     value={formData.preferredTime}
                     onChange={(e) =>
                       handleInputChange("preferredTime", e.target.value)
@@ -91,26 +143,44 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label required>Patient ID</Label>
-                  <Dropdown
-                    options={[1, 2, 3, 4, 5]}
-                    defaultLabel="Select Patient ID"
-                    onSelect={(value) => handleInputChange("PatientID", value)}
-                  />
+                  <Label required>Patient</Label>
+                  {isLoading ? (
+                    <div className="p-2 text-gray-500">Loading patients...</div>
+                  ) : (
+                    <Dropdown
+                      options={patients.map((p) => p.label)}
+                      defaultLabel="Select Patient"
+                      onSelect={(selectedLabel) => {
+                        const selectedPatient = patients.find(
+                          (p) => p.label === selectedLabel
+                        );
+                        handleInputChange("PatientID", selectedPatient?.value);
+                      }}
+                    />
+                  )}
                 </div>
                 <div>
-                  <Label required>Doctor ID</Label>
-                  <Dropdown
-                    options={[1, 2, 3, 4, 5]}
-                    defaultLabel="Select Doctor ID"
-                    onSelect={(value) => handleInputChange("DoctorID", value)}
-                  />
+                  <Label required>Doctor</Label>
+                  {isLoading ? (
+                    <div className="p-2 text-gray-500">Loading doctors...</div>
+                  ) : (
+                    <Dropdown
+                      options={doctors.map((d) => d.label)}
+                      defaultLabel="Select Doctor"
+                      onSelect={(selectedLabel) => {
+                        const selectedDoctor = doctors.find(
+                          (d) => d.label === selectedLabel
+                        );
+                        handleInputChange("DoctorID", selectedDoctor?.value);
+                      }}
+                    />
+                  )}
                 </div>
               </div>
               <div>
                 <Label required>Status</Label>
                 <Dropdown
-                  options={["Pending", "Confirmed", "Cancelled"]}
+                  options={["Scheduled", "Completed", "Cancelled"]}
                   defaultLabel="Choose Status"
                   onSelect={(value) => handleInputChange("status", value)}
                   value={formData.status}
@@ -125,7 +195,7 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
                 <Button
                   content={"Create Appointment"}
                   className="w-full font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                  type="submit"
+                  onClick={handlesubmit}
                   isAddIcon={false}
                 />
               </motion.div>

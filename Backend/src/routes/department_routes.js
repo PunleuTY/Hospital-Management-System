@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get("/api/departments", getAllDepartments);
-router.get("/api/departments/:id", getDepartmentById);
-router.post("/api/departments", createDepartment);
-router.put("/api/departments/:id", updateDepartment);
-router.delete("/api/departments/:id", deleteDepartment);
+router.get("/", getAllDepartments);
+router.get("/:id", getDepartmentById);
+router.post("/", createDepartment);
+router.put("/:id", updateDepartment);
+router.delete("/:id", deleteDepartment);
 
 export default router;

@@ -31,7 +31,7 @@ const Dropdown = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black tween ${
+        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-black tween ${
           selected ? "text-gray-800" : "text-gray-400"
         }`}
       >

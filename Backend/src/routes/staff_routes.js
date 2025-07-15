@@ -7,21 +7,24 @@ import {
   createStaff,
   updateStaff,
   deleteStaff,
+  allDoctorId,
 } from "../controllers/staff_controller.js";
 
 // Router for get all staff members
-router.get("/api/staff", getAllStaff);
+router.get("/", getAllStaff);
 
 // Router for get staff member by id
-router.get("/api/staff/:id", getStaffById);
+router.get("/:id", getStaffById);
+
+router.get("/doctors/id", allDoctorId);
 
 // Router for create staff member
-router.post("/api/staff", createStaff);
+router.post("/", createStaff);
 
 // Router for update staff member
-router.put("/api/staff/:id", updateStaff);
+router.put("/:id", updateStaff);
 
 // Router for delete staff member
-router.delete("api/staff/:id", deleteStaff);
+router.delete("/:id", deleteStaff);
 
 export default router;

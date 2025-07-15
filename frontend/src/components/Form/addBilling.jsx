@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Button from "../Common/Button";
-import Dropdown from "../Common/Dropdown";
-import Label from "../Common/Label";
-import Input from "../Common/Input";
-import { Card, CardHeader, CardContent } from "../Common/Card";
+import Button from "../common/Button";
+import Dropdown from "../common/Dropdown";
+import Label from "../common/Label";
+import Input from "../common/Input";
+import { Card, CardHeader, CardContent } from "../common/Card";
 import { motion } from "framer-motion";
 
 // Icons
@@ -43,20 +43,21 @@ export default function AddBilling({ onClose, onAddBill }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("Billing form submitted with data:", formData);
 
-    const newBill = {
-      id: `B${Math.floor(Math.random() * 100000)}`, // Simple random ID
-      receptionist_id: formData.receptionistID,
-      patient_id: formData.patientID,
-      treatment_fee: Number(formData.treatmentFee),
-      medication_fee: Number(formData.medicationFee),
-      lab_test_fee: Number(formData.labTestFee),
-      consultant_fee: Number(formData.consultationFee),
-      total_amount: Number(formData.totalAmount),
-      status: formData.paymentStatus.toLowerCase(),
+    // Use the actual form data structure expected by the API
+    const billData = {
+      receptionistId: formData.receptionistID,
+      patientId: formData.patientID,
+      treatmentFee: Number(formData.treatmentFee),
+      medicationFee: Number(formData.medicationFee),
+      labTestFee: Number(formData.labTestFee),
+      consultationFee: Number(formData.consultationFee),
+      totalAmount: Number(formData.totalAmount),
+      paymentStatus: formData.paymentStatus.toLowerCase(),
     };
 
-    if (onAddBill) onAddBill(newBill);
+    if (onAddBill) onAddBill(billData);
     if (onClose) onClose();
   };
 
@@ -204,8 +205,9 @@ export default function AddBilling({ onClose, onAddBill }) {
                 <div className="mt-6">
                   <Button
                     content="Create Billing Record"
-                    type="submit"
+                    onClick={handleSubmit}
                     className="w-full"
+                    isAddIcon={false}
                   />
                 </div>
               </motion.div>

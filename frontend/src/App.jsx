@@ -17,7 +17,7 @@ import MedicalRecord from "./components/Medicalrecord.jsx";
 
 // import Staff from "./components/Staff.jsx";
 import Login from "./components/Login.jsx";
-import AddStaff from "./components/Form/addStaff.jsx";
+import AddStaff from "./components/form/addStaff.jsx";
 import AddUser from "./components/addUser.jsx";
 
 export default function App() {
