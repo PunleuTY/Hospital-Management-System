@@ -5,6 +5,7 @@ import {
   createPatientSv,
   updatePatientSv,
   deletePatientSv,
+  getAllPatientId,
 } from "../services/patient_service.js";
 
 // GET /api/patients?page=&limit=

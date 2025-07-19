@@ -22,6 +22,20 @@ export const createUser = async (req, res) => {
   const { username, password, role } = req.body;
   console.log(username, password, role);
 
+  // Validate required fields
+  if (!username || !password || !role) {
+    return res.status(400).json({
+      message: "Username, password, and role are required",
+    });
+  }
+
+  // Validate data types
+  if (typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({
+      message: "Username and password must be strings",
+    });
+  }
+
   try {
     const existingUser = await findUser(username);
 
