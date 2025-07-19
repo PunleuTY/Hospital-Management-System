@@ -107,6 +107,7 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("Billing form submitted with data:", formData);
 
     // Validate required fields
     if (!formData.patientID) {
@@ -139,7 +140,6 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
     }
 
     console.log("Billing form submitted with data:", formData);
-
     // Use the actual form data structure expected by the API
     const billData = {
       receptionistId: formData.receptionistID,

@@ -43,20 +43,15 @@ export default (sequelize, DataTypes) => {
   );
 
   // Association
-
-  Appointment.associate = models => {
-
-    Appointment.associate = (models) => {
-
-      Appointment.belongsTo(models.Patient, {
-        foreignKey: "patient_id",
-        as: "patient",
-      });
-      Appointment.belongsTo(models.Staff, {
-        foreignKey: "doctor_id",
-        as: "doctor",
-      });
-    };
-  }
+  Appointment.associate = (models) => {
+    Appointment.belongsTo(models.Patient, {
+      foreignKey: "patient_id",
+      as: "patient",
+    });
+    Appointment.belongsTo(models.Staff, {
+      foreignKey: "doctor_id",
+      as: "doctor",
+    });
+  };
     return Appointment;
 };

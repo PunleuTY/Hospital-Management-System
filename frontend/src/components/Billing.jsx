@@ -1,10 +1,12 @@
 // React hooks
+import { React } from "react";
 import { useState, useEffect } from "react";
 
 // Common components
 import Button from "./common/Button.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
+import StatisticCard from "./common/statisticCard.jsx";
 import Dropdown from "./common/Dropdown.jsx";
 import {
   Table,
@@ -18,8 +20,10 @@ import Pagination from "./common/Pagination.jsx";
 
 // Form components
 import AddBilling from "./form/addBilling.jsx";
-
 import EditBilling from "./Form/editBilling.jsx";
+
+// Form components
+import AddBilling from "./form/addBilling.jsx";
 import BillingView from "./view/BillingView.jsx";
 
 // Icons
@@ -35,6 +39,13 @@ import {
   summarizeBilling,
 } from "../service/billingAPI.js";
 
+// API services
+import {
+  getAllBillings,
+  createBill,
+  summarizeBilling,
+} from "../service/billingAPI.js";
+
 export default function Billing() {
   // ===== STATE MANAGEMENT =====
   const [bills, setBills] = useState([]);
@@ -45,6 +56,9 @@ export default function Billing() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
   const [stat, setStat] = useState({
     totalPaid: 0,
     totalUnpaid: 0,
@@ -83,6 +97,36 @@ export default function Billing() {
   ];
 
   // ===== COMPUTED VALUES =====
+
+=======
+
+  // ===== CONSTANTS =====
+  const header = [
+    "Id",
+    "Receptionist",
+    "Patient",
+    "Treatment ($)",
+    "Medication ($)",
+    "Lab Test ($)",
+    "Consultant ($)",
+    "Total ($)",
+    "Status",
+    "Actions",
+  ];
+
+  const mockBillsData = [
+    {
+      id: "B001",
+      receptionist: "R001",
+      patient: "P001",
+      treatmentFee: 150.0,
+      medicationFee: 75.5,
+      labTestFee: 120.0,
+      consultationFee: 200.0,
+      total: 545.5,
+      status: "paid",
+    },
+  ];
 
   // ===== API FUNCTIONS =====
   const fetchAllBilling = async (page = 1) => {
@@ -123,9 +167,44 @@ export default function Billing() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+
   const openEditModal = (record) => {
     setSelectedRecord(record);
     setIsEditModalOpen(true);
+
+  const openViewModal = (record) => {
+    setSelectedRecord(record);
+    setIsViewModalOpen(true);
+  };
+
+  const closeViewModal = () => {
+    setSelectedRecord(null);
+    setIsViewModalOpen(false);
+  };
+
+  // Add a new bill
+  const handleAddBill = async (formData) => {
+    try {
+      console.log("Creating bill:", formData);
+      const response = await createBill(formData);
+      console.log("Bill created successfully:", response);
+
+      // Refresh the billing list
+      fetchAllBilling(currentPage);
+
+      // Close the modal
+      closeModal();
+    } catch (error) {
+      console.error("Failed to create bill:", error);
+    }
+  };
+
+  const handleStatusChange = (billId, newStatus) => {
+    setBills((prev) =>
+      prev.map((bill) =>
+        bill.id === billId ? { ...bill, status: newStatus } : bill
+      )
+    );
   };
 
   const closeEditModal = () => {
@@ -251,6 +330,17 @@ export default function Billing() {
     getStat();
   }, []);
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchAllBilling(page);
+  };
+
+  // ===== EFFECTS =====
+  useEffect(() => {
+    fetchAllBilling(currentPage);
+    getStat();
+  }, []);
+
   // ===== RENDER =====
   return (
     <div className="h-full overflow-auto p-3">
@@ -262,6 +352,49 @@ export default function Billing() {
             <h1 className="text-3xl font-bold">Billings</h1>
             <Button content="Create Bill" onClick={openModal} />
           </div>
+
+          {/* Billing Table section - Scrollable container with hidden scrollbar */}
+          <div
+            className="overflow-x-auto scrollbar-hide bg-white rounded-lg shadow overflow-hidden"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <Table className="min-w-[1000px] w-full">
+              {/* Table header */}
+              <TableHeader>
+                {" "}
+                <TableRow>
+                  {header.map((h, idx) => (
+                    <TableHead
+                      key={idx}
+                      className="text-xs whitespace-nowrap px-4 py-3 min-w-[100px]"
+                    >
+                      {h}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+
+          {/* Summary Cards section */}
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatisticCard
+              title="Total Income"
+              value={`$${stat.totalPaid.toFixed(2)}`}
+              subtitle="This month"
+              valueColor="text-green-600"
+            />
+            <StatisticCard
+              title="Pending Bills"
+              value={`$${stat.totalUnpaid.toFixed(2)}`}
+              subtitle={`${stat.totalUnpaidCount} unpaid bills`}
+              valueColor="text-orange-600"
+            />
+            <StatisticCard
+              title="Total Bills"
+              value={stat.totalBills}
+              subtitle="All time"
+              valueColor="text-blue-600"
+            />
+          </div> */}
 
           {/* Billing Table section - Scrollable container with hidden scrollbar */}
           <div

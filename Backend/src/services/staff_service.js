@@ -94,3 +94,4 @@ export const getAllReceptionistIds = async () => {
   );
   return receptionists.map((r) => r.staffId);
 };
+
