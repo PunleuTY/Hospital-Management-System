@@ -57,8 +57,12 @@ export default function AddBilling({ onClose, onAddBill }) {
       paymentStatus: formData.paymentStatus.toLowerCase(),
     };
 
-    if (onAddBill) onAddBill(billData);
-    if (onClose) onClose();
+    if (onAddBill) {
+      onAddBill(billData);
+    }
+    if (onClose) {
+      onClose();
+    }
   };
 
   const handleInputChange = (field, value) => {

@@ -5,25 +5,20 @@ import { success, fail } from "../utils/response.js";
 import { findUser } from "../services/user_service.js";
 import "../../config.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const { JWT_SECRET } = process.env;
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required" });
-  }
 
   try {
     const user = await findUser(username);
 
     if (!user) {
-      return res.status(401).json({ message: "User not found" });
+      return res.status(401).json({ message: "Invalid Credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       return fail(res, "Incorrect password", 401);
     }
@@ -37,6 +32,7 @@ export const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: "24h" }
     );
+
     const userRole = user ? user.role : {};
 
     return success(res, { token, userRole }, 200);

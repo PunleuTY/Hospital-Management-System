@@ -6,6 +6,8 @@ import {
   updatePatientSv,
   deletePatientSv,
 } from "../services/patient_service.js";
+import db from "../../db/models/index.js";
+const { Patient } = db;
 
 // GET /api/patients?page=&limit=
 export const getAllPatients = async (req, res) => {
@@ -22,6 +24,17 @@ export const getAllPatients = async (req, res) => {
     });
   } catch (err) {
     console.error("getAllPatients error:", err);
+    return fail(res, err);
+  }
+};
+
+// GET /api/patients/count
+export const countPatient = async (req, res) => {
+  try {
+    const totalPatient = await Patient.count();
+    return success(res, { total: totalPatient });
+  } catch (err) {
+    console.error("Error couting patient:", err);
     return fail(res, err);
   }
 };

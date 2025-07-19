@@ -67,13 +67,13 @@ export const deleteBillSv = (id) => Billing.destroy({ where: { billId: id } });
 
 export const getTotalAmountPaid = () => {
   return Billing.sum("totalAmount", {
-    where: { paymentStatus: "paid" },
+    where: { paymentStatus: "Paid" },
   });
 };
 
 export const getTotalAmountUnpaid = () => {
   return Billing.sum("totalAmount", {
-    where: { paymentStatus: "unpaid" },
+    where: { paymentStatus: "Unpaid" },
   });
 };
 
@@ -83,6 +83,6 @@ export const getTotalBillsCount = () => {
 
 export const getTotalUnpaidCount = () => {
   return Billing.count({
-    where: { paymentStatus: "unpaid" },
+    where: { paymentStatus: "Unpaid" },
   });
 };

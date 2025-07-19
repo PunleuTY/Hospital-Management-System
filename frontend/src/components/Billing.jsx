@@ -230,9 +230,11 @@ export default function Billing() {
                       <TableRow
                         key={bill.billId}
                         className="cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => openViewModal(bill)}
                       >
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                        <TableCell
+                          onClick={() => openViewModal(bill)}
+                          className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]"
+                        >
                           {bill.billId}
                         </TableCell>
                         <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">

@@ -5,7 +5,7 @@ import {
 } from "../controllers/user_controller.js";
 const router = express.Router();
 
-router.get("/api/users/summarize", getUserSummarize);
-router.post("/api/users", createUser);
+router.get("/summarize", getUserSummarize);
+router.post("/", createUser);
 
 export default router;

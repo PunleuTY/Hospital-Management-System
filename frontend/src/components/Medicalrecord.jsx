@@ -244,9 +244,11 @@ export default function MedicalRecord() {
                     <TableRow
                       key={record.recordId}
                       className="cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => openViewModal(record)}
                     >
-                      <TableCell className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate">
+                      <TableCell
+                        onClick={() => openViewModal(record)}
+                        className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate"
+                      >
                         {record.recordId}
                       </TableCell>
                       <TableCell className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate">

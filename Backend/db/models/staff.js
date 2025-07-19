@@ -66,6 +66,7 @@ export default (sequelize, DataTypes) => {
     Staff.hasMany(models.Staff, {
       foreignKey: "doctor_id",
       as: "team",
+      onDelete: "SET NULL",
     });
     Staff.belongsToMany(models.Patient, {
       through: models.Appointment,
@@ -76,9 +77,11 @@ export default (sequelize, DataTypes) => {
     Staff.hasMany(models.Appointment, {
       foreignKey: "doctor_id",
       as: "appointments",
+      onDelete: "SET NULL",
     });
     Staff.hasMany(models.Billing, {
       foreignKey: "staff_id",
+      onDelete: "SET NULL",
       as: "billings",
     });
   };

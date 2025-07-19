@@ -74,18 +74,21 @@ export default (sequelize, DataTypes) => {
     Patient.hasMany(models.Appointment, {
       foreignKey: "patient_id",
       as: "appointments",
+      onDelete: "SET NULL",
     });
 
     // one-to-many: Patient → Medical_record
     Patient.hasMany(models.Medical_record, {
       foreignKey: "patient_id",
       as: "medicalRecords",
+      onDelete: "SET NULL",
     });
 
     // one-to-many: Patient → Billing
     Patient.hasMany(models.Billing, {
       foreignKey: "patient_id",
       as: "billings",
+      onDelete: "SET NULL",
     });
   };
 

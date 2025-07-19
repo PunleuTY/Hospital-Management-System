@@ -26,8 +26,12 @@ export default function AddMedicalRecord() {
     e.preventDefault();
     console.log("Medical record form submitted with data:", formData);
 
-    if (onAddMedicalRecord) onAddMedicalRecord(formData);
-    if (onClose) onClose();
+    if (onAddMedicalRecord) {
+      onAddMedicalRecord(formData);
+    }
+    if (onClose) {  
+      onClose();
+    }
   };
 
   const handleInputChange = (field, value) => {

@@ -33,6 +33,7 @@ export default (sequelize, DataTypes) => {
     Department.hasMany(models.Staff, {
       foreignKey: "department_id",
       as: "staff",
+      onDelete: "SET NULL",
     });
   };
   return Department;

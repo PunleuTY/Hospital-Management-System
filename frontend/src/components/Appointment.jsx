@@ -234,7 +234,7 @@ export default function Appointment() {
             </div>
             <div className="relative z-11">
               <Dropdown
-                options={["All", "Pending", "Confirmed", "Cancelled"]}
+                options={["All", "Scheduled", "Completed", "Cancelled"]}
                 defaultLabel="Filter by Status"
                 value={filterStatus}
                 onSelect={(option) => setFilterStatus(option)}
@@ -268,9 +268,11 @@ export default function Appointment() {
                   <TableRow
                     key={appointment.appointmentId}
                     className="cursor-pointer hover:bg-gray-50 transition-colors border border-solid"
-                    onClick={() => openViewModal(appointment)}
                   >
-                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                    <TableCell
+                      onClick={() => openViewModal(appointment)}
+                      className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]"
+                    >
                       {appointment.appointmentId}
                     </TableCell>
                     <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[150px]">

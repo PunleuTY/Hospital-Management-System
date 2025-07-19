@@ -6,6 +6,7 @@ import {
   updateAppointment,
   deleteAppointment,
   getUpcomingAppointments,
+  countAppointment,
 } from "../controllers/appointment_controller.js";
 
 const router = e.Router();
@@ -15,6 +16,9 @@ router.get("/", getAllAppointments);
 
 // Router for get upcoming scheduled appointments (10 limit)
 router.get("/upcoming", getUpcomingAppointments);
+
+// Router for counting appointment
+router.get("/count", countAppointment);
 
 // Router for get appointment by id
 router.get("/:id", getAppointmentById);
