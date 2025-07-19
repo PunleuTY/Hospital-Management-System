@@ -31,3 +31,9 @@ export const deleteBill = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`);
   return response.data;
 };
+
+// Get total amount paid
+export const summarizeBilling = async () => {
+  const response = await axios.get(`${API_URL}/stat`);
+  return response.data;
+};

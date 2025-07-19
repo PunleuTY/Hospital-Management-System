@@ -1,17 +1,40 @@
 import User from "../../db/models/user.js";
-import { findUser, createUserSv, listUsers } from "../services/user_service.js";
+import {
+  findUser,
+  createUserSv,
+  getUserStatistics,
+} from "../services/user_service.js";
 import bcrypt from "bcrypt";
 import { success, fail } from "../utils/response.js";
+
+export const getUserSummarize = async (req, res) => {
+  try {
+    const statistics = await getUserStatistics();
+    return success(res, statistics);
+  } catch (err) {
+    console.error("Error getting user statistics:", err);
+    return fail(res, err);
+  }
+};
 
 export const createUser = async (req, res) => {
   console.log(req.body);
   const { username, password, role } = req.body;
   console.log(username, password, role);
-  const roles = {
-    2: "doctor",
-    3: "nurse",
-    4: "receptionist",
-  };
+
+  // Validate required fields
+  if (!username || !password || !role) {
+    return res.status(400).json({
+      message: "Username, password, and role are required",
+    });
+  }
+
+  // Validate data types
+  if (typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({
+      message: "Username and password must be strings",
+    });
+  }
 
   try {
     const existingUser = await findUser(username);
@@ -22,11 +45,13 @@ export const createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const newUser = {
       username,
       password: hashedPassword,
       roleId: role,
-    });
+    };
+
+    await createUserSv(newUser);
 
     return success(res, { message: "User Created Successfully" }, 201);
   } catch (err) {

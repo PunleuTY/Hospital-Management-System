@@ -1,7 +1,7 @@
 import Hospital from "@/assets/hospital.png";
-import Input from "./Common/Input";
+import Input from "./common/Input";
 import { useState } from "react";
-import Button from "./Common/Button";
+import Button from "./common/Button";
 import { useNavigate } from "react-router-dom";
 import { login } from "../service/userAPI";
 import { setToken, setUser } from "../utils/auth";
@@ -107,7 +107,46 @@ export default function Login() {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
-      setLoginError(error.message || "Invalid username or password");
+
+      // Handle different error types
+      let errorMessage = "Invalid username or password";
+
+      if (error.response) {
+        // Handle HTTP status codes
+        switch (error.response.status) {
+          case 401:
+            errorMessage = "Invalid credentials";
+            break;
+          case 400:
+            errorMessage = "Invalid credentials";
+            break;
+          case 404:
+            errorMessage = "User not found";
+            break;
+          case 500:
+            errorMessage = "Server error. Please try again later.";
+            break;
+          default:
+            errorMessage = error.response.data?.message || "Login failed";
+        }
+      } else if (error.message) {
+        // Handle custom error messages from backend
+        if (
+          error.message.toLowerCase().includes("user not found") ||
+          error.message.toLowerCase().includes("not found")
+        ) {
+          errorMessage = "User not found";
+        } else if (
+          error.message.toLowerCase().includes("invalid") ||
+          error.message.toLowerCase().includes("unauthorized")
+        ) {
+          errorMessage = "Invalid credentials";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setLoginError(errorMessage);
     } finally {
       setIsLoading(false);
     }

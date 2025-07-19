@@ -5,13 +5,22 @@ import {
   createPatientSv,
   updatePatientSv,
   deletePatientSv,
+  getAllPatientId,
 } from "../services/patient_service.js";
 
 // GET /api/patients?page=&limit=
 export const getAllPatients = async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.max(1, parseInt(req.query.limit, 10) || 10);
+  const offset = (page - 1) * limit;
+
   try {
-    const patients = await listPatients();
-    return success(res, patients);
+    const { rows, count } = await listPatients({ limit, offset });
+    const totalPages = Math.ceil(count / limit);
+    return success(res, {
+      data: rows,
+      meta: { total: count, page, limit, totalPages },
+    });
   } catch (err) {
     console.error("getAllPatients error:", err);
     return fail(res, err);
@@ -37,6 +46,7 @@ export const createPatient = async (req, res) => {
     const patient = await createPatientSv(req.body);
     return success(res, patient, 201);
   } catch (err) {
+    console.error("Error Creating:", err);
     return fail(res, err);
   }
 };
@@ -63,6 +73,17 @@ export const deletePatient = async (req, res) => {
     }
     return success(res, { deleted: rows });
   } catch (err) {
+    console.error("Error Creating:", err);
+    return fail(res, err);
+  }
+};
+
+export const allPatientId = async (req, res) => {
+  try {
+    const patientsId = await getAllPatientId();
+    return success(res, { data: patientsId });
+  } catch (err) {
+    console.error("Error fetching patient IDs:", err);
     return fail(res, err);
   }
 };

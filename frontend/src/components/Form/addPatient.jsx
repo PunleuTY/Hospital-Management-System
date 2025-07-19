@@ -1,11 +1,11 @@
 import { React } from "react";
 import { useState } from "react";
-import Button from "../Common/Button";
-import Dropdown from "../Common/Dropdown";
-import Label from "../Common/Label";
-import Input from "../Common/Input";
-import Textarea from "../Common/Textarea";
-import { Card, CardHeader, CardContent } from "../Common/Card";
+import Button from "../common/Button";
+import Dropdown from "../common/Dropdown";
+import Label from "../common/Label";
+import Input from "../common/Input";
+import Textarea from "../common/Textarea";
+import { Card, CardHeader, CardContent } from "../common/Card";
 
 //Icons
 import { RiUserAddLine } from "react-icons/ri";
@@ -15,28 +15,34 @@ import { IoIosMailUnread } from "react-icons/io";
 
 export default function AddPatient({ onClose, onAddPatient }) {
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    gender: "",
+    firstName: "",
+    lastName: "",
     height: "",
     weight: "",
-    date_of_birth: "",
+    dateOfBirth: "",
     address: "",
     contact: "",
     email: "",
-    staffID: "",
   });
-
-  const handlesubmit = (e) => {
-    e.preventDefault();
-    alert("Medicalrecord Added Successfully");
-  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form submitted with data:", formData);
+
+    // Basic validation
+    if (!formData.firstName || !formData.lastName || !formData.email) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    onAddPatient(formData);
   };
 
   return (
@@ -51,7 +57,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handlesubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/*Patient Personal Information*/}
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -66,9 +72,9 @@ export default function AddPatient({ onClose, onAddPatient }) {
                 <Label required>First Name</Label>
                 <Input
                   placeholder="Enter first name"
-                  value={formData.first_name}
+                  value={formData.firstName}
                   onChange={(e) =>
-                    handleInputChange("first_name", e.target.value)
+                    handleInputChange("firstName", e.target.value)
                   }
                 />
               </div>
@@ -77,23 +83,10 @@ export default function AddPatient({ onClose, onAddPatient }) {
                 <Label required>Last Name</Label>
                 <Input
                   placeholder="Enter last name"
-                  value={formData.last_name}
+                  value={formData.lastName}
                   onChange={(e) =>
-                    handleInputChange("last_name", e.target.value)
+                    handleInputChange("lastName", e.target.value)
                   }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-              <div>
-                {/*Gender*/}
-                <Label required>Gender</Label>
-                <Dropdown
-                  options={["M", "F"]}
-                  defaultLabel="Select gender"
-                  value={formData.gender}
-                  onSelect={(value) => handleInputChange("gender", value)}
                 />
               </div>
 
@@ -102,21 +95,10 @@ export default function AddPatient({ onClose, onAddPatient }) {
                 <Label required>Date of Birth</Label>
                 <Input
                   type="date"
-                  value={formData.date_of_birth}
+                  value={formData.dateOfBirth}
                   onChange={(e) =>
-                    handleInputChange("date_of_birth", e.target.value)
+                    handleInputChange("dateOfBirth", e.target.value)
                   }
-                />
-              </div>
-
-              <div>
-                {/*Doctor (staff table)*/}
-                <Label required>DoctorID</Label>
-                <Dropdown
-                  options={[1, 2, 3]}
-                  defaultLabel="Select staff member"
-                  value={formData.staffID}
-                  onSelect={(value) => handleInputChange("staffID", value)}
                 />
               </div>
             </div>
@@ -207,8 +189,9 @@ export default function AddPatient({ onClose, onAddPatient }) {
           <div className="mt-6">
             <Button
               content={"Create Patient Record"}
-              onClick={handlesubmit}
               className="w-full"
+              isAddIcon={false}
+              onClick={handleSubmit}
             />
           </div>
         </form>

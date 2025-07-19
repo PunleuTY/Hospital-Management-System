@@ -31,3 +31,9 @@ export const deleteAppointment = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`);
   return response.data;
 };
+
+// get upcoming scheduled appointments (Dashboard.jsx)
+export const getUpcomingAppointments = async () => {
+  const response = await axios.get(`${API_URL}/upcoming`);
+  return response.data;
+};

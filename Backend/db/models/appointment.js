@@ -25,7 +25,7 @@ export default (sequelize, DataTypes) => {
       doctorId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        field: "staff_id",
+        field: "doctor_id",
       },
       patientId: {
         type: DataTypes.INTEGER,
@@ -36,24 +36,27 @@ export default (sequelize, DataTypes) => {
     {
       tableName: "appointment",
       freezeTableName: true,
-      underscored: true,
       timestamps: true,
-      createAt: false,
-      updateAt: "last_modified",
+      createdAt: false,
+      updatedAt: "last_modified",
     }
   );
 
   // Association
-  Appointment.associate = models => {
-    Appointment.belongsTo(models.Patient, {
-      foreignKey: "patient_id",
-      as: "patient"
-    });
-    Appointment.belongsTo(models.Staff, {
-      foreignKey: "doctor_id",
-      as: "doctor"
-    });
-  };
 
-  return Appointment;
+  Appointment.associate = models => {
+
+    Appointment.associate = (models) => {
+
+      Appointment.belongsTo(models.Patient, {
+        foreignKey: "patient_id",
+        as: "patient",
+      });
+      Appointment.belongsTo(models.Staff, {
+        foreignKey: "doctor_id",
+        as: "doctor",
+      });
+    };
+  }
+    return Appointment;
 };

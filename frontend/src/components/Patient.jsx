@@ -1,11 +1,11 @@
+// React hooks
 import { useState, useMemo, useEffect } from "react";
-import Button from "./Common/Button";
-import Input from "./Common/Input";
-import SearchBar from "./Common/SearchBar";
 
-import PageBlurWrapper from "./Common/Blur-wrapper.jsx";
-import ModalWrapper from "./Common/Modal-wrapper.jsx";
-import Dropdown from "./Common/Dropdown.jsx";
+// Common components
+import Button from "./common/Button.jsx";
+import SearchBar from "./common/SearchBar.jsx";
+import PageBlurWrapper from "./common/Blur-wrapper.jsx";
+import ModalWrapper from "./common/Modal-wrapper.jsx";
 import {
   Table,
   TableHeader,
@@ -13,252 +13,266 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "./Common/Table.jsx";
-import AddPatient from "./Form/addPatient.jsx";
+} from "./common/Table.jsx";
+import Pagination from "./common/Pagination.jsx";
+import { success, error } from "./utils/toast.js";
+
+// Form components
+import AddPatient from "./form/addPatient.jsx";
+import PatientView from "./view/PatientView.jsx";
+
+// Icons
 import { TiDelete } from "react-icons/ti";
 
-//API
-import { getAllPatients } from "../service/patientAPI.js";
-import { updatePatient } from "../service/patientAPI";
+// API services
+import {
+  getAllPatients,
+  createPatient,
+  updatePatient,
+  deletePatient,
+} from "../service/patientAPI.js";
 
 export default function Patient() {
   const [patients, setPatients] = useState([]);
+  const [metaData, setMetaData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchAllPatient();
-  }, []);
+  const itemsPerPage = 10;
 
-  const fetchAllPatient = async () => {
+  const mockData = [
+    {
+      patientId: 1,
+      lastName: "Johnson",
+      firstName: "Emma",
+      height: 1.65,
+      weight: 58.3,
+      dateOfBirth: "1990-04-12",
+      address: "245 Riverside Drive, Phnom Penh, Cambodia",
+      contact: "+855 12 456 789",
+      email: "emma.johnson@email.com",
+    },
+    {
+      patientId: 2,
+      lastName: "Chen",
+      firstName: "David",
+      height: 1.78,
+      weight: 72.8,
+      dateOfBirth: "1985-08-23",
+      address: "157 Golden Street, Siem Reap, Cambodia",
+      contact: "+855 17 892 345",
+      email: "david.chen@email.com",
+    },
+    {
+      patientId: 3,
+      lastName: "Rodriguez",
+      firstName: "Sofia",
+      height: 1.62,
+      weight: 54.7,
+      dateOfBirth: "1993-11-07",
+      address: "89 Mekong Avenue, Battambang, Cambodia",
+      contact: "+855 98 234 567",
+      email: "sofia.rodriguez@email.com",
+    },
+    {
+      patientId: 4,
+      lastName: "Thompson",
+      firstName: "Marcus",
+      height: 1.82,
+      weight: 85.2,
+      dateOfBirth: "1988-02-15",
+      address: "312 Temple Road, Kampot, Cambodia",
+      contact: "+855 77 678 912",
+      email: "marcus.thompson@email.com",
+    },
+    {
+      patientId: 5,
+      lastName: "Patel",
+      firstName: "Aria",
+      height: 1.58,
+      weight: 51.9,
+      dateOfBirth: "1995-06-30",
+      address: "76 Lotus Lane, Kep, Cambodia",
+      contact: "+855 16 345 678",
+      email: "aria.patel@email.com",
+    },
+  ];
+
+  const fetchAllPatient = async (page = 1, limit = 10) => {
     try {
-      const patients = await getAllPatients();
-      setPatients(patients);
+      const patients = await getAllPatients(page, limit);
+      setPatients(patients.data.data);
+      setMetaData(patients.data.meta);
     } catch (err) {
       console.error("Failed to fetch patients:", err.message);
     }
   };
 
-  const [filterStatus, setFilterStatus] = useState("All");
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  const handleAddPatient = (newPatient) => {
-    setPatients((prev) => [...prev, newPatient]);
+  const openModal = () => {
+    console.log("Opening patient modal");
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    console.log("Closing patient modal");
+    setIsModalOpen(false);
   };
 
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handleDeletePatient = (patientId) => {
-    setPatients((prev) =>
-      prev.filter((patient) => patient.patient_id !== patientId)
-    );
+  const openViewModal = (record) => {
+    setSelectedRecord(record);
+    setIsViewModalOpen(true);
   };
 
-  const filteredPatients = useMemo(() => {
-    return patients.filter((patient) => {
-      const fullName =
-        `${patient.first_name} ${patient.last_name}`.toLowerCase();
-      const matchesSearch = fullName.includes(searchTerm.toLowerCase());
-      // If filterStatus is "All status", show all, else match status (case-insensitive)
-      const matchesStatus =
-        filterStatus === "All status" ||
-        filterStatus === "All" ||
-        filterStatus === "" ||
-        patient.status.toLowerCase() === filterStatus.toLowerCase();
-      return matchesSearch && matchesStatus;
-    });
-  }, [patients, searchTerm, filterStatus]);
+  const closeViewModal = () => {
+    setSelectedRecord(null);
+    setIsViewModalOpen(false);
+  };
 
-  // Header
-  const header = [
-    "Id",
-    "Last Name",
-    "First Name",
-    "Height (m)",
-    "Weight (kg)",
-    "Date of Birth",
-    "Address",
-    "Contact",
-    "Email",
-    "Doctor",
-    "Actions",
-  ];
-
-  // Change status handler
-  const handleStatusChange = async (id, newStatus) => {
+  const handleAddPatient = async (formData) => {
     try {
-      await updatePatient(id, { status: newStatus });
-      setPatients((prev) =>
-        prev.map((a) => (a.patient_id === id ? { ...a, status: newStatus } : a))
-      );
-    } catch (err) {
-      console.error("Failed to update patient status:", err.message);
+      console.log("Creating patient:", formData);
+      const response = await createPatient(formData);
+      console.log("Patient created successfully:", response);
+
+      // Refresh the patient list
+      fetchAllPatient(currentPage, itemsPerPage);
+
+      // Close the modal
+      closeModal();
+    } catch (error) {
+      console.error("Failed to create patient:", error);
+      // You can add toast notification here
     }
   };
 
-  const mockPatientData = [
-    {
-      patient_id: "P001",
-      last_name: "Smith",
-      first_name: "John",
-      height: 1.82,
-      weight: 85.5,
-      date_of_birth: "1985-04-12",
-      address: "123 Maple Street, Springfield, IL 62704",
-      contact: "555-0101",
-      email: "john.smith@example.com",
-      doctor_id: "DOC734",
-    },
-    {
-      patient_id: "P002",
-      last_name: "Garcia",
-      first_name: "Maria",
-      height: 1.65,
-      weight: 63.2,
-      date_of_birth: "1992-08-23",
-      address: "456 Oak Avenue, Shelbyville, TN 37160",
-      contact: "555-0102",
-      email: "maria.garcia@example.com",
-      doctor_id: "DOC219",
-    },
-    {
-      patient_id: "P003",
-      last_name: "Chen",
-      first_name: "Wei",
-      height: 1.75,
-      weight: 72.0,
-      date_of_birth: "1978-11-30",
-      address: "789 Pine Lane, Capital City, CA 95814",
-      contact: "555-0103",
-      email: "wei.chen@example.com",
-      doctor_id: "DOC734",
-    },
-    {
-      patient_id: "P004",
-      last_name: "Williams",
-      first_name: "David",
-      height: 1.9,
-      weight: 94.8,
-      date_of_birth: "1995-02-18",
-      address: "101 Birch Road, North Haverbrook, NH 03765",
-      contact: "555-0104",
-      email: "david.williams@example.com",
-      doctor_id: "DOC558",
-    },
-    {
-      patient_id: "P005",
-      last_name: "Jones",
-      first_name: "Emily",
-      height: 1.7,
-      weight: 58.1,
-      date_of_birth: "2001-07-07",
-      address: "212 Cedar Blvd, Ogdenville, OR 97031",
-      contact: "555-0105",
-      email: "emily.jones@example.com",
-      doctor_id: "DOC219",
-    },
-  ];
+  const handleDeletePatient = async (patientId) => {
+    try {
+      const response = await deletePatient(patientId);
+      console.log("Patient deleted successfully:", response);
+      fetchAllPatient(currentPage, itemsPerPage);
+    } catch (err) {
+      console.error("Failed to delete patient:", err.message);
+      error("Failed to delete patient");
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchAllPatient(page, itemsPerPage);
+  };
+
+  useEffect(() => {
+    fetchAllPatient(currentPage, itemsPerPage);
+  }, [currentPage]);
 
   return (
     <div className="h-full overflow-auto p-3">
       <PageBlurWrapper isBlurred={isModalOpen}>
         <div className="w-full flex flex-col gap-3 px-1">
-          {/*Header*/}
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Patients</h1>
             <Button content={"Add Patient"} onClick={openModal} />
           </div>
 
-          {/*Search and Filter*/}
           <div>
             <SearchBar
               placeholder="Search patients..."
               value={searchTerm}
-              className="w-100"
+              className="w-full"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          {/*Table*/}
-          <div className="bg-white rounded-lg shadow overflow-hidden w-full">
-            <div className="overflow-x-auto no-scrollbar">
-              <Table className="w-full table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    {header.map((h, idx) => {
-                      const widthClasses = [
-                        "w-20", // Id
-                        "w-28", // Last Name
-                        "w-28", // First Name
-                        "w-20", // Height (m)
-                        "w-20", // Weight (kg)
-                        "w-32", // Date of Birth
-                        "w-64", // Address
-                        "w-28", // Contact
-                        "w-48", // Email
-                        "w-24", // Doctor
-                        "w-20", // Actions
-                      ];
-                      return (
-                        <TableHead
-                          key={idx}
-                          className={`text-xs whitespace-nowrap px-4 py-3 ${widthClasses[idx]}`}
-                        >
-                          {h}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockPatientData.map((p) => (
-                    <TableRow key={p.patient_id}>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-20">
-                        {p.patient_id}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-28">
-                        {p.last_name}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-28">
-                        {p.first_name}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-20">
-                        {p.height}m
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-20">
-                        {p.weight}kg
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-32">
-                        {p.date_of_birth}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-64">
-                        {p.address}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-28">
-                        {p.contact}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-48">
-                        {p.email}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap w-24">
-                        {p.doctor_id}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-3 w-20">
-                        <button
-                          onClick={() => handleDeletePatient(p.patient_id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <TiDelete className="w-8 h-8 cursor-pointer" />
-                        </button>
-                      </TableCell>
-                    </TableRow>
+          <div
+            className="overflow-x-auto scrollbar-hide rounded-lg overflow-y-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <Table className="min-w-[900px] w-full">
+              <TableHeader>
+                <TableRow>
+                  {[
+                    "ID",
+                    "First Name",
+                    "Last Name",
+                    "Hieght (m)",
+                    "Weight (kg)",
+                    "Date of Birth",
+                    "Address",
+                    "Contact",
+                    "Email",
+                    "Action",
+                  ].map((h) => (
+                    <TableHead
+                      key={h}
+                      className="text-xs whitespace-nowrap px-4 py-3 min-w-[100px]"
+                    >
+                      {h}
+                    </TableHead>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {patients.map((p) => (
+                  <TableRow
+                    key={p.patientId}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <TableCell
+                      onClick={() => openViewModal(p)}
+                      className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]"
+                    >
+                      {p.patientId}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.lastName}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.firstName}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.height}m
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.weight}kg
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.dateOfBirth}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                      {p.address}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[140px]">
+                      {p.contact}
+                    </TableCell>
+                    <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[200px]">
+                      {p.email}
+                    </TableCell>
+                    <TableCell
+                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleDeletePatient(p.patientId)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <TiDelete className="w-6 h-6 cursor-pointer" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          {/* Table end */}
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={metaData.totalPages || 1}
+            totalItems={metaData.total || 0}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+          />
         </div>
       </PageBlurWrapper>
 
@@ -272,6 +286,30 @@ export default function Patient() {
       >
         <AddPatient onClose={closeModal} onAddPatient={handleAddPatient} />
       </ModalWrapper>
+
+      <ModalWrapper
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        size="lg"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        {selectedRecord && (
+          <PatientView data={selectedRecord} onClose={closeViewModal} />
+        )}
+      </ModalWrapper>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+          height: 0;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }

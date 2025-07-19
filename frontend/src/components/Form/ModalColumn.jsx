@@ -1,7 +1,7 @@
-import Button from "../Common/Button";
+import Button from "../common/Button";
 import { useEffect } from "react";
 import { FaClipboardList } from "react-icons/fa";
-import { Card, CardHeader, CardContent } from "../Common/Card";
+import { Card, CardHeader, CardContent } from "../common/Card";
 import { motion } from "framer-motion";
 
 export default function ModalColumn({

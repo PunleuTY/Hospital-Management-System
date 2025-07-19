@@ -18,8 +18,12 @@ const TableBody = ({ children, className = "" }) => {
   );
 };
 
-const TableRow = ({ children, className = "" }) => {
-  return <tr className={`hover:bg-gray-100 ${className}`}>{children}</tr>;
+const TableRow = ({ children, className = "", onClick }) => {
+  return (
+    <tr className={`hover:bg-gray-100 ${className}`} onClick={() => onClick()}>
+      {children}
+    </tr>
+  );
 };
 
 const TableHead = ({ children, className = "" }) => {
@@ -32,9 +36,14 @@ const TableHead = ({ children, className = "" }) => {
   );
 };
 
-const TableCell = ({ children, className = "" }) => {
+const TableCell = ({ children, className = "", onClick }) => {
   return (
-    <td className={`px-6 text-sm text-gray-900 ${className}`}>{children}</td>
+    <td
+      onClick={() => onClick()}
+      className={`px-6 text-sm text-gray-900 ${className}`}
+    >
+      {children}
+    </td>
   );
 };
 

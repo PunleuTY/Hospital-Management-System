@@ -57,7 +57,7 @@ export default (sequelize, DataTypes) => {
       freezeTableName: true, // keep the table name as is
       underscored: true, // automatically snake_case JS attributes
       timestamps: true,
-      createAt: " false", // disable createdAt
+      createdAt: false, // disable createdAt
       updatedAt: "last_modified", // write into the last_modified column
     }
   );

@@ -41,6 +41,8 @@ export default (sequelize, DataTypes) => {
       freezeTableName: true,
       underscored: true,
       timestamp: true,
+      createdAt: false,
+      updatedAt: "last_modified",
     }
   );
 

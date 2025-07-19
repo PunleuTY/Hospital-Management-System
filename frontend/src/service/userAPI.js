@@ -9,6 +9,12 @@ export const getAllUsers = async (page = 1, limit = 10) => {
   return response.data;
 };
 
+// summarize users
+export const getUserSummarize = async () => {
+  const response = await axios.get(`${API_URL}/summarize`);
+  return response.data;
+};
+
 // get user by id
 export const getUserById = async (id) => {
   const response = await axios.get(`${API_URL}/${id}`);

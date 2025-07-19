@@ -9,15 +9,6 @@ const sequelize = new Sequelize(
     host: "localhost",
     dialect: "postgres",
     logging: false, // Disable logging to reduce overhead
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-    dialectOptions: {
-      connectTimeout: 30000,
-    },
   }
 );
 
