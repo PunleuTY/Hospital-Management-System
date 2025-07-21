@@ -15,16 +15,16 @@ import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { getAllPatientIds } from "../../service/patientAPI";
 import { getAllReceptionistIds } from "../../service/staffAPI";
 
-export default function AddBilling({ onClose, onAddBill, isLoading }) {
+export default function EditBilling({ onClose, onUpdateBill, initialData }) {
   const [formData, setFormData] = useState({
-    patientID: "",
-    receptionistID: "",
-    treatmentFee: "",
-    medicationFee: "",
-    labTestFee: "",
-    consultationFee: "",
-    totalAmount: "",
-    paymentStatus: "",
+    patientID: initialData?.patientId || "",
+    receptionistID: initialData?.receptionistId || "",
+    treatmentFee: initialData?.treatmentFee || "",
+    medicationFee: initialData?.medicationFee || "",
+    labTestFee: initialData?.labTestFee || "",
+    consultationFee: initialData?.consultationFee || "",
+    totalAmount: initialData?.totalAmount || "",
+    paymentStatus: initialData?.paymentStatus || "",
   });
 
   const [patientIds, setPatientIds] = useState([]);
@@ -32,59 +32,36 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
 
   // Fetch patient IDs and receptionist IDs on component mount
   useEffect(() => {
-    const fetchIds = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch patients
-        let patients;
-        try {
-          patients = await getAllPatientIds();
-        } catch (patientError) {
-          console.error("Error fetching patients:", patientError);
-          patients = [];
+        const [patientsRes, receptionistsRes] = await Promise.all([
+          getAllPatientIds(),
+          getAllReceptionistIds(),
+        ]);
+
+        if (patientsRes?.data?.data) {
+          setPatientIds(
+            patientsRes.data.data.map((id) => ({
+              value: id,
+              label: id.toString(),
+            }))
+          );
         }
 
-        // Fetch receptionists
-        let receptionists;
-        try {
-          receptionists = await getAllReceptionistIds();
-        } catch (receptionistError) {
-          console.error("Error fetching receptionists:", receptionistError);
-          receptionists = [];
+        if (receptionistsRes?.data?.data) {
+          setReceptionistIds(
+            receptionistsRes.data.data.map((id) => ({
+              value: id,
+              label: id.toString(),
+            }))
+          );
         }
-
-        // Set patient IDs
-        const processedPatients = Array.isArray(patients?.data)
-          ? patients.data
-          : Array.isArray(patients)
-          ? patients
-          : [];
-        setPatientIds(processedPatients);
-
-        // Set receptionist IDs with detailed logging
-        let processedReceptionists = [];
-
-        if (Array.isArray(receptionists)) {
-          processedReceptionists = receptionists.map((r) => {
-            // Handle both direct IDs and objects
-            const id =
-              typeof r === "object" ? r?.staffId || r?.staff_id || r?.id : r;
-            return id?.toString();
-          });
-        } else if (receptionists?.data && Array.isArray(receptionists.data)) {
-          processedReceptionists = receptionists.data.map((r) => {
-            const id =
-              typeof r === "object" ? r?.staffId || r?.staff_id || r?.id : r;
-            return id?.toString();
-          });
-        } else {
-          console.log("Receptionists format not recognized:", receptionists);
-        }
-        setReceptionistIds(processedReceptionists);
       } catch (error) {
         console.error("Error fetching IDs:", error);
       }
     };
-    fetchIds();
+
+    fetchData();
   }, []);
 
   // Automatically calculate total amount
@@ -107,39 +84,8 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Billing form submitted with data:", formData);
+    console.log("Edit billing form submitted with data:", formData);
 
-    // Validate required fields
-    if (!formData.patientID) {
-      alert("Please select a Patient ID");
-      return;
-    }
-    if (!formData.receptionistID) {
-      alert("Please select a Receptionist ID");
-      return;
-    }
-    if (!formData.treatmentFee || formData.treatmentFee <= 0) {
-      alert("Please enter a valid Treatment Fee");
-      return;
-    }
-    if (!formData.medicationFee || formData.medicationFee <= 0) {
-      alert("Please enter a valid Medication Fee");
-      return;
-    }
-    if (!formData.labTestFee || formData.labTestFee <= 0) {
-      alert("Please enter a valid Lab Test Fee");
-      return;
-    }
-    if (!formData.consultationFee || formData.consultationFee <= 0) {
-      alert("Please enter a valid Consultation Fee");
-      return;
-    }
-    if (!formData.paymentStatus) {
-      alert("Please select a Payment Status");
-      return;
-    }
-
-    console.log("Billing form submitted with data:", formData);
     // Use the actual form data structure expected by the API
     const billData = {
       receptionistId: formData.receptionistID,
@@ -152,12 +98,8 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
       paymentStatus: formData.paymentStatus.toLowerCase(),
     };
 
-    if (onAddBill) {
-      onAddBill(billData);
-    }
-    if (onClose) {
-      onClose();
-    }
+    if (onUpdateBill) onUpdateBill(initialData.billId, billData);
+    if (onClose) onClose();
   };
 
   const handleInputChange = (field, value) => {
@@ -172,7 +114,7 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-2">
           <HiOutlineCalculator className="text-2xl text-blue-600" />
-          <h1 className="text-xl font-semibold text-gray-900">Billing Form</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Edit Billing</h1>
         </div>
       </CardHeader>
 
@@ -197,18 +139,16 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
                   <Dropdown
                     options={patientIds}
                     defaultLabel="Select Patient ID"
+                    value={formData.patientID}
                     onSelect={(value) => handleInputChange("patientID", value)}
                   />
                 </div>
                 <div>
                   <Label required>Receptionist ID</Label>
-                  {console.log(
-                    "🎯 Dropdown receptionistIds prop:",
-                    receptionistIds
-                  )}
                   <Dropdown
                     options={receptionistIds}
                     defaultLabel="Select Receptionist ID"
+                    value={formData.receptionistID}
                     onSelect={(value) =>
                       handleInputChange("receptionistID", value)
                     }
@@ -281,6 +221,7 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
                 <Dropdown
                   options={["Paid", "Unpaid", "Pending"]}
                   defaultLabel="Select Payment Status"
+                  value={formData.paymentStatus}
                   onSelect={(value) =>
                     handleInputChange("paymentStatus", value)
                   }
@@ -307,13 +248,10 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
               >
                 <div className="mt-6">
                   <Button
-                    content={
-                      isLoading ? "Creating..." : "Create Billing Record"
-                    }
+                    content="Update Billing Record"
                     onClick={handleSubmit}
                     className="w-full"
                     isAddIcon={false}
-                    disabled={isLoading}
                   />
                 </div>
               </motion.div>

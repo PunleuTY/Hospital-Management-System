@@ -6,7 +6,18 @@ import {
   updateStaffSv,
   deleteStaffSv,
   getAllDoctorId,
+  getAllReceptionistIds
 } from "../services/staff_service.js";
+
+
+export const allReceptionistId = async (req, res) => {
+  try {
+    const ids = await getAllReceptionistIds();
+    return success(res, { data: ids });
+  } catch (err) {
+    return fail(res, err);
+  }
+};
 
 export const getAllStaff = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);

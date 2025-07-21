@@ -53,6 +53,5 @@ export default (sequelize, DataTypes) => {
       as: "doctor",
     });
   };
-
-  return Appointment;
+    return Appointment;
 };

@@ -5,6 +5,7 @@ import {
   createPatientSv,
   updatePatientSv,
   deletePatientSv,
+  getAllPatientId,
 } from "../services/patient_service.js";
 import db from "../../db/models/index.js";
 const { Patient } = db;

@@ -36,3 +36,8 @@ export const getAllDoctorIds = async () => {
   const response = await axios.get(`${API_URL}/doctors/id`);
   return response.data.data;
 };
+
+export const getAllReceptionistIds = async () => {
+  const response = await axios.get(`${API_URL}/receptionists/id`);
+  return response.data.data;
+};
