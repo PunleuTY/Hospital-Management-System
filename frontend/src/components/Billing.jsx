@@ -21,9 +21,6 @@ import Pagination from "./common/Pagination.jsx";
 // Form components
 import AddBilling from "./form/addBilling.jsx";
 import EditBilling from "./Form/editBilling.jsx";
-
-// Form components
-import AddBilling from "./form/addBilling.jsx";
 import BillingView from "./view/BillingView.jsx";
 
 // Icons
@@ -39,13 +36,6 @@ import {
   summarizeBilling,
 } from "../service/billingAPI.js";
 
-// API services
-import {
-  getAllBillings,
-  createBill,
-  summarizeBilling,
-} from "../service/billingAPI.js";
-
 export default function Billing() {
   // ===== STATE MANAGEMENT =====
   const [bills, setBills] = useState([]);
@@ -56,9 +46,6 @@ export default function Billing() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
   const [stat, setStat] = useState({
     totalPaid: 0,
     totalUnpaid: 0,
@@ -67,38 +54,6 @@ export default function Billing() {
   });
 
   const itemsPerPage = 10;
-
-  // ===== CONSTANTS =====
-  const header = [
-    "Id",
-    "Receptionist",
-    "Patient",
-    "Treatment ($)",
-    "Medication ($)",
-    "Lab Test ($)",
-    "Consultant ($)",
-    "Total ($)",
-    "Status",
-    "Actions",
-  ];
-
-  const mockBillsData = [
-    {
-      id: "B001",
-      receptionist: "R001",
-      patient: "P001",
-      treatmentFee: 150.0,
-      medicationFee: 75.5,
-      labTestFee: 120.0,
-      consultationFee: 200.0,
-      total: 545.5,
-      status: "paid",
-    },
-  ];
-
-  // ===== COMPUTED VALUES =====
-
-=======
 
   // ===== CONSTANTS =====
   const header = [
@@ -167,49 +122,9 @@ export default function Billing() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-
   const openEditModal = (record) => {
     setSelectedRecord(record);
     setIsEditModalOpen(true);
-
-  const openViewModal = (record) => {
-    setSelectedRecord(record);
-    setIsViewModalOpen(true);
-  };
-
-  const closeViewModal = () => {
-    setSelectedRecord(null);
-    setIsViewModalOpen(false);
-  };
-
-  // Add a new bill
-  const handleAddBill = async (formData) => {
-    try {
-      console.log("Creating bill:", formData);
-      const response = await createBill(formData);
-      console.log("Bill created successfully:", response);
-
-      // Refresh the billing list
-      fetchAllBilling(currentPage);
-
-      // Close the modal
-      closeModal();
-    } catch (error) {
-      console.error("Failed to create bill:", error);
-    }
-  };
-
-  const handleStatusChange = (billId, newStatus) => {
-    setBills((prev) =>
-      prev.map((bill) =>
-        bill.id === billId ? { ...bill, status: newStatus } : bill
-      )
-    );
-  };
-
-  const closeEditModal = () => {
-    setSelectedRecord(null);
-    setIsEditModalOpen(false);
   };
 
   const openViewModal = (record) => {
@@ -249,6 +164,11 @@ export default function Billing() {
     }
   };
 
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedRecord(null);
+  };
+
   // Update an existing bill
   const handleUpdateBill = async (billId, formData) => {
     try {
@@ -271,7 +191,9 @@ export default function Billing() {
     try {
       // Find the bill to update
       const billToUpdate = bills.find((bill) => bill.billId === billId);
-      if (!billToUpdate) return;
+      if (!billToUpdate) {
+        return;
+      }
 
       // Call API to update
       await updateBill(billId, {
@@ -330,17 +252,6 @@ export default function Billing() {
     getStat();
   }, []);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    fetchAllBilling(page);
-  };
-
-  // ===== EFFECTS =====
-  useEffect(() => {
-    fetchAllBilling(currentPage);
-    getStat();
-  }, []);
-
   // ===== RENDER =====
   return (
     <div className="h-full overflow-auto p-3">
@@ -352,7 +263,6 @@ export default function Billing() {
             <h1 className="text-3xl font-bold">Billings</h1>
             <Button content="Create Bill" onClick={openModal} />
           </div>
-
           {/* Billing Table section - Scrollable container with hidden scrollbar */}
           <div
             className="overflow-x-auto scrollbar-hide bg-white rounded-lg shadow overflow-hidden"
@@ -361,7 +271,6 @@ export default function Billing() {
             <Table className="min-w-[1000px] w-full">
               {/* Table header */}
               <TableHeader>
-                {" "}
                 <TableRow>
                   {header.map((h, idx) => (
                     <TableHead
@@ -373,50 +282,6 @@ export default function Billing() {
                   ))}
                 </TableRow>
               </TableHeader>
-
-          {/* Summary Cards section */}
-          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatisticCard
-              title="Total Income"
-              value={`$${stat.totalPaid.toFixed(2)}`}
-              subtitle="This month"
-              valueColor="text-green-600"
-            />
-            <StatisticCard
-              title="Pending Bills"
-              value={`$${stat.totalUnpaid.toFixed(2)}`}
-              subtitle={`${stat.totalUnpaidCount} unpaid bills`}
-              valueColor="text-orange-600"
-            />
-            <StatisticCard
-              title="Total Bills"
-              value={stat.totalBills}
-              subtitle="All time"
-              valueColor="text-blue-600"
-            />
-          </div> */}
-
-          {/* Billing Table section - Scrollable container with hidden scrollbar */}
-          <div
-            className="overflow-x-auto scrollbar-hide bg-white rounded-lg shadow overflow-hidden"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            <Table className="min-w-[1000px] w-full">
-              {/* Table header */}
-              <TableHeader>
-                {" "}
-                <TableRow>
-                  {header.map((h, idx) => (
-                    <TableHead
-                      key={idx}
-                      className="text-xs whitespace-nowrap px-4 py-3 min-w-[100px]"
-                    >
-                      {h}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-
               {/* Table body */}
               <TableBody>
                 {bills.length > 0
@@ -424,11 +289,9 @@ export default function Billing() {
                       <TableRow
                         key={bill.billId}
                         className="cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => openViewModal(bill)}
                       >
-                        <TableCell
-                          onClick={() => openViewModal(bill)}
-                          className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]"
-                        >
+                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
                           {bill.billId}
                         </TableCell>
                         <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
@@ -581,7 +444,6 @@ export default function Billing() {
           />
         </div>
       </PageBlurWrapper>
-
       {/* Add Billing Modal */}
       <ModalWrapper
         isOpen={isModalOpen}
@@ -597,7 +459,6 @@ export default function Billing() {
           isLoading={isLoading}
         />
       </ModalWrapper>
-
       {/* Edit Billing Modal */}
       <ModalWrapper
         isOpen={isEditModalOpen}
@@ -615,7 +476,6 @@ export default function Billing() {
           />
         )}
       </ModalWrapper>
-
       {/* View Billing Details Modal */}
       <ModalWrapper
         isOpen={isViewModalOpen}
@@ -627,7 +487,6 @@ export default function Billing() {
       >
         {selectedRecord && <BillingView data={selectedRecord} />}
       </ModalWrapper>
-
       {/* Global CSS to hide scrollbar */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

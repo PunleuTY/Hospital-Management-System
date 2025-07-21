@@ -3,7 +3,6 @@ import { useState, useMemo, useEffect } from "react";
 
 // Common components
 import Button from "./common/Button.jsx";
-import SearchBar from "./common/SearchBar.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
 import {
@@ -15,14 +14,17 @@ import {
   TableCell,
 } from "./common/Table.jsx";
 import Pagination from "./common/Pagination.jsx";
+import Confirm from "./common/Confirm.jsx";
 import { success, error } from "./utils/toast.js";
 
 // Form components
 import AddPatient from "./form/addPatient.jsx";
+import EditPatient from "./form/editPatient.jsx";
 import PatientView from "./view/PatientView.jsx";
 
 // Icons
 import { TiDelete } from "react-icons/ti";
+import { FiEdit } from "react-icons/fi";
 
 // API services
 import {
@@ -36,10 +38,13 @@ export default function Patient() {
   const [patients, setPatients] = useState([]);
   const [metaData, setMetaData] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -111,6 +116,29 @@ export default function Patient() {
     }
   };
 
+  const openEditModal = (record) => {
+    setSelectedRecord(record);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setSelectedRecord(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleUpdatePatient = async (patientId, formData) => {
+    try {
+      const response = await updatePatient(patientId, formData);
+      console.log("Patient updated successfully:", response);
+      fetchAllPatient(currentPage, itemsPerPage);
+      success("Patient updated successfully");
+      closeEditModal();
+    } catch (error) {
+      console.error("Failed to update patient:", error);
+      error("Failed to update patient");
+    }
+  };
+
   const openModal = () => {
     console.log("Opening patient modal");
     setIsModalOpen(true);
@@ -135,6 +163,7 @@ export default function Patient() {
       console.log("Creating patient:", formData);
       const response = await createPatient(formData);
       console.log("Patient created successfully:", response);
+      success("Patient added successfully.");
 
       // Refresh the patient list
       fetchAllPatient(currentPage, itemsPerPage);
@@ -143,6 +172,7 @@ export default function Patient() {
       closeModal();
     } catch (error) {
       console.error("Failed to create patient:", error);
+      error("Error adding patient");
       // You can add toast notification here
     }
   };
@@ -152,6 +182,8 @@ export default function Patient() {
       const response = await deletePatient(patientId);
       console.log("Patient deleted successfully:", response);
       fetchAllPatient(currentPage, itemsPerPage);
+      success("Patient deleted successfully");
+      setShowConfirm(false);
     } catch (err) {
       console.error("Failed to delete patient:", err.message);
       error("Failed to delete patient");
@@ -175,16 +207,6 @@ export default function Patient() {
             <h1 className="text-3xl font-bold">Patients</h1>
             <Button content={"Add Patient"} onClick={openModal} />
           </div>
-
-          <div>
-            <SearchBar
-              placeholder="Search patients..."
-              value={searchTerm}
-              className="w-full"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
           <div
             className="overflow-x-auto scrollbar-hide rounded-lg overflow-y-auto"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -250,12 +272,23 @@ export default function Patient() {
                       {p.email}
                     </TableCell>
                     <TableCell
-                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px]"
+                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px] flex gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => handleDeletePatient(p.patientId)}
+                        onClick={() => openEditModal(p)}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Edit"
+                      >
+                        <FiEdit className="w-4 h-4 cursor-pointer" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowConfirm(true);
+                          setDeleteId(p.patientId);
+                        }}
                         className="text-red-500 hover:text-red-700"
+                        title="Delete"
                       >
                         <TiDelete className="w-6 h-6 cursor-pointer" />
                       </button>
@@ -288,6 +321,23 @@ export default function Patient() {
       </ModalWrapper>
 
       <ModalWrapper
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        size="md"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        {selectedRecord && (
+          <EditPatient
+            onClose={closeEditModal}
+            onUpdatePatient={handleUpdatePatient}
+            initialData={selectedRecord}
+          />
+        )}
+      </ModalWrapper>
+
+      <ModalWrapper
         isOpen={isViewModalOpen}
         onClose={closeViewModal}
         size="lg"
@@ -299,6 +349,15 @@ export default function Patient() {
           <PatientView data={selectedRecord} onClose={closeViewModal} />
         )}
       </ModalWrapper>
+
+      <Confirm
+        open={showConfirm}
+        title="Delete Item"
+        message="Are you sure?"
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleDeletePatient}
+        id={deleteId}
+      />
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

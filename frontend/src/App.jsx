@@ -19,11 +19,16 @@ import AddStaff from "./components/form/addStaff.jsx";
 import AddUser from "./components/addUser.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
+import { getToken } from "./utils/auth.js";
+
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route
+          path="/"
+          element={getToken() ? <DashboardWithLayout /> : <Login />}
+        />
         <Route
           path="/dashboard/*"
           element={

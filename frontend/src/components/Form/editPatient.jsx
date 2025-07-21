@@ -1,0 +1,197 @@
+import React, { useState, useEffect } from "react";
+import Button from "../common/Button";
+import Dropdown from "../common/Dropdown";
+import Label from "../common/Label";
+import Input from "../common/Input";
+import Textarea from "../common/Textarea";
+import { Card, CardHeader, CardContent } from "../common/Card";
+
+//Icons
+import { RiUserAddLine } from "react-icons/ri";
+import { FaRegUser } from "react-icons/fa";
+import { GiBodyHeight } from "react-icons/gi";
+import { IoIosMailUnread } from "react-icons/io";
+
+export default function EditPatient({ onClose, onUpdatePatient, initialData }) {
+  const [formData, setFormData] = useState({
+    firstName: initialData?.firstName || "",
+    lastName: initialData?.lastName || "",
+    height: initialData?.height || "",
+    weight: initialData?.weight || "",
+    dateOfBirth: initialData?.dateOfBirth || "",
+    address: initialData?.address || "",
+    contact: initialData?.contact || "",
+    email: initialData?.email || "",
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form submitted with data:", formData);
+
+    if (onUpdatePatient && initialData?.patientId) {
+      onUpdatePatient(initialData.patientId, formData);
+    }
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="text-center">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <RiUserAddLine className="text-2xl text-blue-500" />
+          <h1 className="text-xl font-semibold text-gray-900">Edit Patient</h1>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/*Patient Personal Information*/}
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <FaRegUser className="text-l text-blue-500 gap-2" />
+              <h2 className="text-lg font-medium text-gray-900">
+                Patient Personal Information
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <Label required>First Name</Label>
+                <Input
+                  placeholder="Enter first name"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    handleInputChange("firstName", e.target.value)
+                  }
+                />
+              </div>
+
+              <div>
+                <Label required>Last Name</Label>
+                <Input
+                  placeholder="Enter last name"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    handleInputChange("lastName", e.target.value)
+                  }
+                />
+              </div>
+
+              <div>
+                {/*DOB*/}
+                <Label required>Date of Birth</Label>
+                <Input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) =>
+                    handleInputChange("dateOfBirth", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          {/*Patient Physical Information*/}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <GiBodyHeight className="text-2xl text-blue-500" />
+              <h2 className="text-lg font-medium text-gray-900">
+                Physical Information
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label required>Height (meters)</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g., 1.75"
+                  value={formData.height}
+                  onChange={(e) => handleInputChange("height", e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label required>Weight (kilograms)</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g., 70"
+                  value={formData.weight}
+                  onChange={(e) => handleInputChange("weight", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/*Contact Information*/}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <IoIosMailUnread className="text-2xl text-blue-500" />
+              <h2 className="text-lg font-medium text-gray-900">
+                Contact Information
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                {/*Address */}
+                <Label required>Address</Label>
+                <Textarea
+                  placeholder="Enter complete address including street, city, state, and postal code"
+                  rows={3}
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  {/*Phone Number*/}
+                  <Label required>Contact Number</Label>
+                  <Input
+                    type="tel"
+                    placeholder="e.g.,069924540"
+                    value={formData.contact}
+                    onChange={(e) =>
+                      handleInputChange("contact", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  {/*Email Address*/}
+                  <Label required>Email Address</Label>
+                  <Input
+                    type="email"
+                    placeholder="patient@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/*Submit Button*/}
+          <div className="mt-6">
+            <Button
+              content={"Update Patient Record"}
+              className="w-full"
+              isAddIcon={false}
+              onClick={handleSubmit}
+            />
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

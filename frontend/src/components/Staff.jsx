@@ -14,17 +14,25 @@ import {
   TableCell,
 } from "./common/Table.jsx";
 import Pagination from "./common/Pagination.jsx";
+import Confirm from "./common/Confirm.jsx";
+import { success, error } from "./utils/toast.js";
 
 // Form components
 import AddStaff from "./form/addStaff.jsx";
+import EditStaff from "./form/editStaff.jsx";
 import StaffView from "./view/StaffView.jsx";
 
 // Icons
 import { TiDelete } from "react-icons/ti";
+import { FiEdit } from "react-icons/fi";
 
 // API services
-import { getAllStaffs, createStaff } from "../service/staffAPI.js";
-import { deleteStaff as deleteStaffAPI } from "../service/staffAPI.js";
+import {
+  getAllStaffs,
+  createStaff,
+  deleteStaff,
+  updateStaff,
+} from "../service/staffAPI.js";
 
 export default function Staff() {
   // ===== STATE MANAGEMENT =====
@@ -32,8 +40,21 @@ export default function Staff() {
   const [metaData, setMetaData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const openEditModal = (record) => {
+    setSelectedRecord(record);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setSelectedRecord(null);
+    setIsEditModalOpen(false);
+  };
 
   const itemsPerPage = 10;
 
@@ -77,9 +98,6 @@ export default function Staff() {
     // ...rest omitted for brevity
   ];
 
-  // ===== COMPUTED VALUES =====
-  const dataToDisplay = staff.length > 0 ? staff : mockStaffData;
-
   // ===== API FUNCTIONS =====
   const fetchAllStaff = async (page = 1, limit = 10) => {
     try {
@@ -91,12 +109,16 @@ export default function Staff() {
     }
   };
 
-  const deleteStaff = async (id) => {
+  const handleDeleteStaff = async (staffId) => {
     try {
-      await deleteStaffAPI(id);
-      setStaffs((prev) => prev.filter((s) => s.staff_id !== id));
+      const response = await deleteStaff(staffId);
+      console.log("Staff deleted successfully:", response);
+      fetchAllStaff(currentPage, itemsPerPage);
+      success("Staff deleted successfully");
+      setShowConfirm(false);
     } catch (err) {
       console.error("Failed to delete staff:", err.message);
+      error("Failed to delete staff");
     }
   };
 
@@ -132,6 +154,19 @@ export default function Staff() {
       closeModal();
     } catch (error) {
       console.error("Failed to create staff:", error);
+    }
+  };
+  const handleUpdateStaff = async (staffId, formData) => {
+    try {
+      console.log("Updating staff:", staffId, formData);
+      const response = await updateStaff(staffId, formData);
+      console.log("Staff updated successfully:", response);
+      fetchAllStaff(currentPage, itemsPerPage);
+      success("Staff updated successfully");
+      closeEditModal();
+    } catch (error) {
+      console.error("Failed to update staff:", error);
+      error("Failed to update staff");
     }
   };
 
@@ -204,20 +239,34 @@ export default function Staff() {
                       {staffMember.contact}
                     </TableCell>
                     <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
-                      {staffMember.specialization ?? "----"}
+                      {staffMember.specialization ?? "No Specialization"}
                     </TableCell>
                     <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
                       {staffMember.department_id}
                     </TableCell>
                     <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
-                      {staffMember.doctor_id ?? "----"}
+                      {staffMember.doctor_id ?? "No Doctor"}
                     </TableCell>
                     <TableCell
-                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px]"
+                      className="text-xs px-4 py-3 whitespace-nowrap max-w-[80px] flex gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => deleteStaff(staffMember.staff_id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(staffMember);
+                        }}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Edit"
+                      >
+                        <FiEdit className="w-4 h-4 cursor-pointer" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowConfirm(true);
+                          setDeleteId(staffMember.staff_id);
+                        }}
                         className="text-red-500 hover:text-red-700"
                       >
                         <TiDelete className="w-6 h-6 cursor-pointer" />
@@ -250,6 +299,23 @@ export default function Staff() {
         <AddStaff onClose={closeModal} onAddStaff={handleAddStaff} />
       </ModalWrapper>
 
+      <ModalWrapper
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        size="md"
+        showCloseButton={true}
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        {selectedRecord && (
+          <EditStaff
+            onClose={closeEditModal}
+            onUpdateStaff={handleUpdateStaff}
+            initialData={selectedRecord}
+          />
+        )}
+      </ModalWrapper>
+
       {/* View Staff Details Modal */}
       <ModalWrapper
         isOpen={isViewModalOpen}
@@ -261,6 +327,15 @@ export default function Staff() {
       >
         {selectedRecord && <StaffView data={selectedRecord} />}
       </ModalWrapper>
+
+      <Confirm
+        open={showConfirm}
+        title="Delete Item"
+        message="Are you sure?"
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleDeleteStaff}
+        id={deleteId}
+      />
 
       {/* Global CSS to hide scrollbar */}
       <style>{`

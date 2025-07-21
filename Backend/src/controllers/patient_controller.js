@@ -67,7 +67,18 @@ export const createPatient = async (req, res) => {
 // PUT /api/patients/:id
 export const updatePatient = async (req, res) => {
   try {
-    const [rows] = await updatePatientSv(req.params.id, req.body);
+    const filteredBody = {};
+    for (const key in req.body) {
+      if (
+        req.body[key] !== "" &&
+        req.body[key] !== undefined &&
+        req.body[key] !== null
+      ) {
+        filteredBody[key] = req.body[key];
+      }
+    }
+
+    const [rows] = await updatePatientSv(req.params.id, filteredBody);
     if (rows === 0) {
       return res.status(404).json({ status: "error", message: "Not Found" });
     }

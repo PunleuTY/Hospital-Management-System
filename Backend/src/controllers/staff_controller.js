@@ -6,9 +6,8 @@ import {
   updateStaffSv,
   deleteStaffSv,
   getAllDoctorId,
-  getAllReceptionistIds
+  getAllReceptionistIds,
 } from "../services/staff_service.js";
-
 
 export const allReceptionistId = async (req, res) => {
   try {
@@ -58,7 +57,18 @@ export const createStaff = async (req, res) => {
 
 export const updateStaff = async (req, res) => {
   try {
-    const [rows] = await updateStaffSv(req.params.id, req.body);
+    const filteredBody = {};
+    for (const key in req.body) {
+      if (
+        req.body[key] !== "" &&
+        req.body[key] !== undefined &&
+        req.body[key] !== null
+      ) {
+        filteredBody[key] = req.body[key];
+      }
+    }
+
+    const [rows] = await updateStaffSv(req.params.id, filteredBody);
     if (rows === 0) {
       return fail(res, "Staff not found or no changes made", 404);
     }
