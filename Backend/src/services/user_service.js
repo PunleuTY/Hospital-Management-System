@@ -123,10 +123,10 @@ export const createUserSv = async (data) => {
 
 // Update user
 export const updateUserSv = async (id, data) => {
-  return User.update(data, { where: { userId: id } });
+  return User.update(data, { where: { user_id: id } });
 };
 
 // Delete user
 export const deleteUserSv = async (id) => {
-  return User.destroy({ where: { userId: id } });
+  return User.destroy({ where: { user_id: id } });
 };

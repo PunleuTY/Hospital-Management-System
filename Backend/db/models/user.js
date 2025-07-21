@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
       },
       roleId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "role_id",
       },
     },
@@ -38,6 +38,7 @@ export default (sequelize, DataTypes) => {
   User.associate = (models) => {
     User.belongsTo(models.Role, {
       foreignKey: "role_id",
+      onDelete: "SET NULL",
       as: "role",
     });
   };

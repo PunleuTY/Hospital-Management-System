@@ -36,7 +36,7 @@ export default (sequelize, DataTypes) => {
       },
       departmentId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "department_id",
       },
       doctorId: {
@@ -58,14 +58,23 @@ export default (sequelize, DataTypes) => {
     Staff.belongsTo(models.Department, {
       foreignKey: "department_id",
       as: "department",
+      onDelete: "SET NULL",
     });
     Staff.belongsTo(models.Staff, {
       foreignKey: "doctor_id",
       as: "supervisor",
+      onDelete: "SET NULL",
     });
     Staff.hasMany(models.Staff, {
       foreignKey: "doctor_id",
       as: "team",
+    });
+    Staff.belongsToMany(models.Patient, {
+      through: models.Appointment,
+      foreignKey: "staff_id",
+      otherKey: "patient_id",
+      as: "patients",
+      onDelete: "SET NULL",
     });
     Staff.hasMany(models.Appointment, {
       foreignKey: "doctor_id",

@@ -13,7 +13,7 @@ import {
   getAllAppointments,
 } from "../service/appointmentAPI.js";
 import { getAllPatients } from "../service/patientAPI.js";
-import { getAllBillings } from "../service/billingAPI.js";
+import { summarizeBilling } from "../service/billingAPI.js";
 
 export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,7 +49,7 @@ export default function Dashboard() {
       ] = await Promise.all([
         getAllPatients(1, 1), // Just get metadata for total count
         getAllAppointments(1, 1), // Just get metadata for total count
-        getAllBillings(1, 1000), // Get all billings to calculate total revenue
+        summarizeBilling(), // Get all billings to calculate total revenue
         getUpcomingAppointments(),
       ]);
 
@@ -60,16 +60,10 @@ export default function Dashboard() {
         upcoming: upcomingResponse,
       });
 
-      // Calculate total revenue from all billings
-      const totalRevenue =
-        billingsResponse.data?.data.reduce((sum, bill) => {
-          return sum + (bill.totalAmount || 0);
-        }, 0) || 0;
-
       setDashboardStats({
         totalPatients: patientsResponse.data.meta?.total,
         totalAppointments: appointmentsResponse.data.meta?.total,
-        totalRevenue: totalRevenue,
+        totalRevenue: billingsResponse.data.totalPaid,
         isLoading: false,
       });
 

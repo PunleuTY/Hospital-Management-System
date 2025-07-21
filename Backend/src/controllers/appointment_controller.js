@@ -1,3 +1,5 @@
+import db from "../../db/models/index.js";
+const { Appointment } = db;
 import {
   listAllAppointments,
   createAppointmentSv,
@@ -8,6 +10,7 @@ import {
 } from "../services/appointment_service.js";
 import { success, fail } from "../utils/response.js";
 
+// Get all
 export const getAllAppointments = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.max(1, parseInt(req.query.limit) || 10);
@@ -27,8 +30,9 @@ export const getAllAppointments = async (req, res) => {
 export const getAppointmentById = async (req, res) => {
   try {
     const appointment = await findAppointmentById(req.params.id);
-    if (!appointment)
+    if (!appointment) {
       return res.status(404).json({ status: "error", message: "Not Found" });
+    }
     return success(res, appointment);
   } catch (err) {
     return fail(res, err);
@@ -45,8 +49,9 @@ export const createAppointment = async (req, res) => {
 export const updateAppointment = async (req, res) => {
   try {
     const [rows] = await updateAppointmentSv(req.params.id, req.body);
-    if (rows === 0)
+    if (rows === 0) {
       return res.status(404).json({ status: "error", message: "Not Found" });
+    }
     return success(res, { updated: rows });
   } catch (err) {
     return fail(res, err);
@@ -76,6 +81,17 @@ export const getUpcomingAppointments = async (req, res) => {
     });
   } catch (err) {
     console.error("getUpcomingAppointments error:", err);
+    return fail(res, err);
+  }
+};
+
+// GET /api/appointments/count
+export const countAppointment = async (req, res) => {
+  try {
+    const totalAppointment = await Appointment.count();
+    return success(res, { total: totalAppointment });
+  } catch (err) {
+    console.error("Error couting appointment:", err);
     return fail(res, err);
   }
 };

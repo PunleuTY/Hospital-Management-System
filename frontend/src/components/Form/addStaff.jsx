@@ -28,8 +28,10 @@ export default function AddStaff({ onClose, onAddStaff }) {
     console.log("Staff form submitted with data:", formData);
 
     // Pass the actual form data
-    if (onAddStaff) onAddStaff(formData);
-    if (onClose) onClose();
+    if (onAddStaff) {
+      onAddStaff(formData);
+    }
+    if (onClose) {onClose();};
   };
 
   const handleInputChange = (field, value) => {

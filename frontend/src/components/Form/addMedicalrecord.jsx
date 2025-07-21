@@ -149,9 +149,7 @@ export default function AddMedicalRecord({
               rows={4}
               placeholder="Enter detailed diagnosis …"
               value={formData.diagnosis}
-              onChange={(e) =>
-                handleInputChange("diagnosis", e.target.value)
-              }
+              onChange={(e) => handleInputChange("diagnosis", e.target.value)}
             />
           </div>
           <div>
@@ -160,9 +158,7 @@ export default function AddMedicalRecord({
               rows={4}
               placeholder="Enter the treatment plan …"
               value={formData.treatment}
-              onChange={(e) =>
-                handleInputChange("treatment", e.target.value)
-              }
+              onChange={(e) => handleInputChange("treatment", e.target.value)}
             />
           </div>
           <div>
@@ -182,9 +178,7 @@ export default function AddMedicalRecord({
               rows={4}
               placeholder="Enter laboratory test …"
               value={formData.lab_result}
-              onChange={(e) =>
-                handleInputChange("lab_result", e.target.value)
-              }
+              onChange={(e) => handleInputChange("lab_result", e.target.value)}
             />
           </div>
           <div className="mt-6">

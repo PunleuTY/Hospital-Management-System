@@ -5,7 +5,10 @@ import {
   createPatientSv,
   updatePatientSv,
   deletePatientSv,
+  getAllPatientId,
 } from "../services/patient_service.js";
+import db from "../../db/models/index.js";
+const { Patient } = db;
 
 // GET /api/patients?page=&limit=
 export const getAllPatients = async (req, res) => {
@@ -22,6 +25,17 @@ export const getAllPatients = async (req, res) => {
     });
   } catch (err) {
     console.error("getAllPatients error:", err);
+    return fail(res, err);
+  }
+};
+
+// GET /api/patients/count
+export const countPatient = async (req, res) => {
+  try {
+    const totalPatient = await Patient.count();
+    return success(res, { total: totalPatient });
+  } catch (err) {
+    console.error("Error couting patient:", err);
     return fail(res, err);
   }
 };
@@ -53,7 +67,18 @@ export const createPatient = async (req, res) => {
 // PUT /api/patients/:id
 export const updatePatient = async (req, res) => {
   try {
-    const [rows] = await updatePatientSv(req.params.id, req.body);
+    const filteredBody = {};
+    for (const key in req.body) {
+      if (
+        req.body[key] !== "" &&
+        req.body[key] !== undefined &&
+        req.body[key] !== null
+      ) {
+        filteredBody[key] = req.body[key];
+      }
+    }
+
+    const [rows] = await updatePatientSv(req.params.id, filteredBody);
     if (rows === 0) {
       return res.status(404).json({ status: "error", message: "Not Found" });
     }

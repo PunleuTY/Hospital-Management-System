@@ -19,7 +19,9 @@ const Dropdown = ({
       const opt = options.find(
         (o) => o.value.toString() === selected.toString()
       );
-      if (opt) setCurrentLabel(opt.label);
+      if (opt) {
+        setCurrentLabel(opt.label);
+      }
     }
   }, [selected, options, defaultLabel]);
 
@@ -62,7 +64,9 @@ const Dropdown = ({
               // find the button’s DOM node to align with it
               transform: (() => {
                 const btn = document.querySelector(`.${className} button`);
-                if (!btn) return "";
+                if (!btn) {
+                  return "";
+                }
                 const { bottom, left, width } = btn.getBoundingClientRect();
                 return `translate(${left}px, ${bottom}px)`;
               })(),

@@ -36,3 +36,9 @@ export const getAllPatientIds = async () => {
   const response = await axios.get(`${API_URL}/patients/id`);
   return response.data.data;
 };
+
+// count patient
+export const countPatient = async () => {
+  const resposne = await axios.get(`${API_URL}/count`);
+  return resposne.data;
+};

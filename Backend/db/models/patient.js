@@ -68,6 +68,7 @@ export default (sequelize, DataTypes) => {
       foreignKey: "patient_id",
       otherKey: "doctor_id",
       as: "doctors",
+      onDelete: "SET NULL",
     });
 
     // one-to-many: Patient → Appointment

@@ -79,3 +79,19 @@ export const getAllDoctorId = async () => {
   });
   return doctorsId.map((doctor) => doctor.staff_id);
 };
+
+export const getAllReceptionistIds = async () => {
+  const { Op } = db.Sequelize;
+  const receptionists = await Staff.findAll({
+    where: {
+      role: { [Op.iLike]: "%receptionist%" }, // For Postgres, case-insensitive
+    },
+    attributes: ["staffId", "role"], // Use staffId, not staff_id
+  });
+  console.log(
+    "Backend: Found receptionists:",
+    receptionists.map((r) => ({ id: r.staffId, role: r.role }))
+  );
+  return receptionists.map((r) => r.staffId);
+};
+
