@@ -16,7 +16,7 @@ export default (sequelize, DataTypes) => {
       location: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "location",
+        field: "location",  
       },
     },
     {

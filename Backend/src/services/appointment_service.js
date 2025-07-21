@@ -64,3 +64,36 @@ export const deleteAppointmentSv = async (id) => {
   // 2) delete the appointment
   return Appointment.destroy({ where: { appointmentId: id } });
 };
+
+export const getUpcomingScheduledAppointments = async () => {
+  return Appointment.findAll({
+    attributes: [
+      "appointmentId",
+      "patientId",
+      "doctorId",
+      "dateTime",
+      "purpose",
+      "status",
+    ],
+    where: {
+      status: "scheduled",
+      dateTime: {
+        [db.Sequelize.Op.gte]: new Date(), // Only future appointments
+      },
+    },
+    order: [["dateTime", "ASC"]], // Order by appointment time
+    limit: 10,
+    include: [
+      {
+        model: Patient,
+        as: "patient",
+        attributes: ["patientId", "firstName", "lastName"],
+      },
+      {
+        model: Staff,
+        as: "doctor",
+        attributes: ["staffId", "firstName", "lastName"],
+      },
+    ],
+  });
+};

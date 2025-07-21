@@ -46,3 +46,10 @@ export const deletePatientSv = async (id) => {
   // 2) delete the patient
   return Patient.destroy({ where: { patientId: id } });
 };
+
+export const getAllPatientId = async () => {
+  const patientsId = await Patient.findAll({
+    attributes: ["patientId"],
+  });
+  return patientsId.map((patient) => patient.patientId);
+};

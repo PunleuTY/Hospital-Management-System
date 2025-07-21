@@ -71,3 +71,11 @@ export const deleteStaffSv = async (id) => {
   // 3) finally delete the staff record itself
   return Staff.destroy({ where: { staffId: id } });
 };
+
+export const getAllDoctorId = async () => {
+  const doctorsId = await Staff.findAll({
+    where: { role: "doctor" },
+    attributes: ["staff_id"],
+  });
+  return doctorsId.map((doctor) => doctor.staff_id);
+};

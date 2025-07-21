@@ -64,3 +64,25 @@ export const updateBillSv = (id, billData) =>
   Billing.update(billData, { where: { billId: id } });
 
 export const deleteBillSv = (id) => Billing.destroy({ where: { billId: id } });
+
+export const getTotalAmountPaid = () => {
+  return Billing.sum("totalAmount", {
+    where: { paymentStatus: "paid" },
+  });
+};
+
+export const getTotalAmountUnpaid = () => {
+  return Billing.sum("totalAmount", {
+    where: { paymentStatus: "unpaid" },
+  });
+};
+
+export const getTotalBillsCount = () => {
+  return Billing.count();
+};
+
+export const getTotalUnpaidCount = () => {
+  return Billing.count({
+    where: { paymentStatus: "unpaid" },
+  });
+};
