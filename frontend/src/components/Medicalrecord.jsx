@@ -1,13 +1,7 @@
-// React hooks
 import { useState, useEffect } from "react";
-
-// Common components
 import Button from "./common/Button.jsx";
-import Input from "./common/Input.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
-import StatisticCard from "./common/statisticCard.jsx";
-import Dropdown from "./common/Dropdown.jsx";
 import {
   Table,
   TableHeader,
@@ -16,25 +10,19 @@ import {
   TableHead,
   TableCell,
 } from "./common/Table.jsx";
-import Pagination from "./common/Pagination.jsx";
-
-// Form components
+import Pagination from "./Common/Pagination.jsx";
 import AddMedicalRecord from "./form/addMedicalRecord.jsx";
 import ModalColumn from "./form/ModalColumn.jsx";
 import MedicalRecordView from "./view/MedicalRecordView.jsx";
-
-// Icons
 import { TiDelete } from "react-icons/ti";
 import { IoEyeSharp } from "react-icons/io5";
-
-// API services
 import {
   getAllMedicalRecords,
   createMedicalRecord,
+  deleteMedicalRecord,
 } from "../service/medicalrecordAPI.js";
 
 export default function MedicalRecord() {
-  // ===== STATE MANAGEMENT =====
   const [medicalrecords, setMedicalRecords] = useState([]);
   const [metaData, setMetaData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,7 +37,6 @@ export default function MedicalRecord() {
 
   const itemsPerPage = 10;
 
-  // ===== CONSTANTS =====
   const header = [
     "Id",
     "Patient",
@@ -61,67 +48,7 @@ export default function MedicalRecord() {
     "Actions",
   ];
 
-  const mockMedicalRecords = [
-    {
-      recordId: "MR1001",
-      patient: "John Doe",
-      appointmentId: "APT5001",
-      diagnosis: "Flu",
-      prescription: "Paracetamol 500mg",
-      labResult: "Negative",
-      treatment: "Rest and hydration",
-    },
-    {
-      recordId: "MR1002",
-      patient: "Jane Smith",
-      appointmentId: "APT5002",
-      diagnosis: "Sprained Ankle",
-      prescription: "Ibuprofen 200mg",
-      labResult: "X-ray clear",
-      treatment: "Physical therapy",
-    },
-    {
-      recordId: "MR1003",
-      patient: "Michael Lee",
-      appointmentId: "APT5003",
-      diagnosis: "Type 2 Diabetes",
-      prescription: "Metformin",
-      labResult: "Blood sugar: 150 mg/dL",
-      treatment: "Diet and exercise",
-    },
-    {
-      recordId: "MR1004",
-      patient: "Emily Davis",
-      appointmentId: "APT5004",
-      diagnosis: "Hypertension",
-      prescription: "Lisinopril",
-      labResult: "BP: 140/90 mmHg",
-      treatment: "Medication adherence",
-    },
-    {
-      recordId: "MR1005",
-      patient: "David Brown",
-      appointmentId: "APT5005",
-      diagnosis: "Allergic Rhinitis",
-      prescription: "Cetirizine",
-      labResult: "Positive allergy test",
-      treatment: "Avoid allergens",
-    },
-  ];
-
-  // ===== UTILITY FUNCTIONS =====
-  // Helper to truncate text
-  const truncateText = (text, maxLength = 50) => {
-    if (!text) {
-      return "";
-    }
-    if (text.length <= maxLength) {
-      return text;
-    }
-    return text.substring(0, maxLength) + "...";
-  };
-
-  // ===== API FUNCTIONS =====
+  // fetch page N of records
   const fetchAllMedicalRecord = async (page = 1, limit = 10) => {
     try {
       const response = await getAllMedicalRecords(page, limit);
@@ -132,15 +59,13 @@ export default function MedicalRecord() {
     }
   };
 
-  // ===== EVENT HANDLERS =====
+  // Open / close modals
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-
   const openViewModal = (record) => {
     setSelectedRecord(record);
     setIsViewModalOpen(true);
   };
-
   const closeViewModal = () => {
     setSelectedRecord(null);
     setIsViewModalOpen(false);
@@ -148,73 +73,54 @@ export default function MedicalRecord() {
 
   const handleAddMedicalRecord = async (formData) => {
     try {
-      console.log("Creating medical record:", formData);
-      const response = await createMedicalRecord(formData);
-      console.log("Medical record created successfully:", response);
+      const { data } = await getAllMedicalRecords(1, itemsPerPage);
+      const totalPages = data.meta.totalPages;
 
-      // Refresh the medical records list
-      fetchAllMedicalRecord(currentPage, itemsPerPage);
+      setCurrentPage(totalPages);
+      await fetchAllMedicalRecord(totalPages, itemsPerPage);
 
-      // Close the modal
       closeModal();
     } catch (error) {
       console.error("Failed to create medical record:", error);
     }
   };
 
-  const handleDeleteRecord = (recordId) => {
-    setMedicalRecords((prev) =>
-      prev.filter((record) => record.record_id !== recordId)
-    );
+  const handleDeleteRecord = async (recordId) => {
+    try {
+      await deleteMedicalRecord(recordId);
+      fetchAllMedicalRecord(currentPage, itemsPerPage);
+    } catch (err) {
+      console.error("Failed to delete record:", err);
+      alert("Error deleting medical record.");
+    }
   };
 
-  const openModalColumns = (title, content) => {
-    setModalData({
-      isOpen: true,
-      title,
-      content,
-    });
-  };
-
-  const closeModalColumns = () => {
-    setModalData({
-      isOpen: false,
-      title: "",
-      content: "",
-    });
-  };
+  const openModalColumns = (title, content) =>
+    setModalData({ isOpen: true, title, content });
+  const closeModalColumns = () =>
+    setModalData({ isOpen: false, title: "", content: "" });
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    fetchAllMedicalRecord(page, itemsPerPage);
   };
 
-  // ===== EFFECTS =====
   useEffect(() => {
     fetchAllMedicalRecord(currentPage, itemsPerPage);
   }, [currentPage]);
 
-  // ===== RENDER =====
   return (
     <div className="h-full overflow-auto p-3">
-      {/* Main content with blur effect when modal is open */}
-      <PageBlurWrapper
-        isBlurred={modalData.isOpen || isModalOpen || isViewModalOpen}
-      >
+      <PageBlurWrapper isBlurred={modalData.isOpen || isModalOpen || isViewModalOpen}>
         <div className="w-full flex flex-col gap-3 px-1">
-          {/* Header section */}
+          {/* Header */}
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Medical Records</h1>
-            <Button content={"Add Medical Record"} onClick={openModal} />
+            <Button content="Add Medical Record" onClick={openModal} />
           </div>
 
-          {/* Table section - Scrollable container with hidden scrollbar */}
-          <div
-            className="overflow-x-auto scrollbar-hide bg-white rounded-lg shadow overflow-hidden"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
+          {/* Table */}
+          <div className="overflow-x-auto scrollbar-hide bg-white rounded-lg shadow">
             <Table className="min-w-[1000px] w-full">
-              {/* Table header */}
               <TableHeader>
                 <TableRow>
                   {header.map((h, idx) => (
@@ -227,15 +133,10 @@ export default function MedicalRecord() {
                   ))}
                 </TableRow>
               </TableHeader>
-
-              {/* Table body */}
               <TableBody>
                 {medicalrecords.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={header.length}
-                      className="text-center py-4 text-gray-500"
-                    >
+                    <TableCell colSpan={header.length} className="text-center py-4 text-gray-500">
                       No records found.
                     </TableCell>
                   </TableRow>
@@ -266,8 +167,6 @@ export default function MedicalRecord() {
                               openModalColumns("Diagnosis", record.diagnosis);
                             }}
                             className="text-blue-600 hover:text-blue-800"
-                            title="View full diagnosis"
-                            aria-label="View full diagnosis"
                           >
                             <IoEyeSharp className="w-5 h-5" />
                           </button>
@@ -279,14 +178,9 @@ export default function MedicalRecord() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openModalColumns(
-                                "Prescription",
-                                record.prescription
-                              );
+                              openModalColumns("Prescription", record.prescription);
                             }}
                             className="text-blue-600 hover:text-blue-800"
-                            title="View full prescription"
-                            aria-label="View full prescription"
                           >
                             <IoEyeSharp className="w-5 h-5" />
                           </button>
@@ -301,8 +195,6 @@ export default function MedicalRecord() {
                               openModalColumns("Lab Results", record.labResult);
                             }}
                             className="text-blue-600 hover:text-blue-800"
-                            title="View full lab results"
-                            aria-label="View full lab results"
                           >
                             <IoEyeSharp className="w-5 h-5" />
                           </button>
@@ -317,8 +209,6 @@ export default function MedicalRecord() {
                               openModalColumns("Treatment", record.treatment);
                             }}
                             className="text-blue-600 hover:text-blue-800"
-                            title="View full treatment"
-                            aria-label="View full treatment"
                           >
                             <IoEyeSharp className="w-5 h-5" />
                           </button>
@@ -331,9 +221,8 @@ export default function MedicalRecord() {
                             e.stopPropagation();
                             handleDeleteRecord(record.recordId);
                           }}
-                          aria-label="Delete medical record"
                         >
-                          <TiDelete className="w-6 h-6 cursor-pointer" />
+                          <TiDelete className="w-6 h-6" />
                         </button>
                       </TableCell>
                     </TableRow>
@@ -342,6 +231,8 @@ export default function MedicalRecord() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
           <Pagination
             currentPage={currentPage}
             totalPages={metaData.totalPages || 1}
@@ -352,30 +243,16 @@ export default function MedicalRecord() {
         </div>
       </PageBlurWrapper>
 
-      {/* Add Medical Record Modal */}
-      <ModalWrapper
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        size="md"
-        showCloseButton={true}
-        closeOnBackdropClick={true}
-        closeOnEscape={true}
-      >
+      {/* Add Record Modal */}
+      <ModalWrapper isOpen={isModalOpen} onClose={closeModal} size="md">
         <AddMedicalRecord
           onClose={closeModal}
           onAddMedicalRecord={handleAddMedicalRecord}
         />
       </ModalWrapper>
 
-      {/* Modal to show full text content */}
-      <ModalWrapper
-        isOpen={modalData.isOpen}
-        onClose={closeModalColumns}
-        size="md"
-        showCloseButton={true}
-        closeOnBackdropClick={true}
-        closeOnEscape={true}
-      >
+      {/* Column View Modal */}
+      <ModalWrapper isOpen={modalData.isOpen} onClose={closeModalColumns} size="md">
         <ModalColumn
           isOpen={modalData.isOpen}
           onClose={closeModalColumns}
@@ -390,27 +267,14 @@ export default function MedicalRecord() {
         </ModalColumn>
       </ModalWrapper>
 
-      {/* Detailed View Modal */}
-      <ModalWrapper
-        isOpen={isViewModalOpen}
-        onClose={closeViewModal}
-        showCloseButton={true}
-        closeOnBackdropClick={true}
-        closeOnEscape={true}
-      >
+      {/* View Record Modal */}
+      <ModalWrapper isOpen={isViewModalOpen} onClose={closeViewModal}>
         {selectedRecord && <MedicalRecordView data={selectedRecord} />}
       </ModalWrapper>
 
-      {/* Global CSS to hide scrollbar */}
       <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-          height: 0;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

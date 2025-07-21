@@ -25,3 +25,13 @@ export const deleteMedicalRecord = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`);
   return response.data;
 };
+
+export const fetchPatients = () => {
+  const response = axios.get(`${API_URL}/patients`);
+  return response.data;
+};
+
+export const fetchAppointments = () => {
+  const response = axios.get(`${API_URL}/appointments`);
+  return response.data;
+};

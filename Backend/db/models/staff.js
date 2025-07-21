@@ -81,7 +81,7 @@ export default (sequelize, DataTypes) => {
       as: "appointments",
     });
     Staff.hasMany(models.Billing, {
-      foreignKey: "staff_id",
+      foreignKey: "receptionistId",
       as: "billings",
     });
   };

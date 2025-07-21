@@ -83,8 +83,8 @@ export default function ModalWrapper({
         type: "spring",
         damping: 25,
         stiffness: 300,
-        duration: 0.3,
-      },
+          duration: 0.3,
+        },
     },
     exit: {
       opacity: 0,
@@ -125,7 +125,7 @@ export default function ModalWrapper({
 
           {/* Modal Content */}
           <motion.div
-            className={`relative w-full ${sizeClasses[size]} max-h-[90vh] no-scrollbar overflow-x-auto ${className} rounded-md`}
+            className={`relative w-full ${sizeClasses[size]} max-h-[90vh] no-scrollbar overflow-x-visible ${className} rounded-md`}
             variants={modalVariants}
             initial="hidden"
             animate="visible"

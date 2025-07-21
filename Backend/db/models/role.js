@@ -2,19 +2,21 @@ export default (sequelize, DataTypes) => {
   const Role = sequelize.define(
     "Role",
     {
-      role_id: {
+      roleId: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+        field: "role_id",
       },
-      role_name: {
+      roleName: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        field: "role_name",
       },
     },
     {
-      tableName: "role",
+      tableName: "role", 
       freezeTableName: true,
       underscored: true,
       timestamps: true,
@@ -23,12 +25,12 @@ export default (sequelize, DataTypes) => {
     }
   );
 
-  // Define associations
   Role.associate = (models) => {
     Role.hasMany(models.User, {
       foreignKey: "role_id",
       as: "users",
     });
   };
+
   return Role;
 };

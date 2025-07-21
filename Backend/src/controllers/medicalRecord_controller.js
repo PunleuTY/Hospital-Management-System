@@ -4,6 +4,8 @@ import {
   createMedicalRecordSv,
   updateMedicalRecordSv,
   deleteMedicalRecordSv,
+  getAllPatientsForDropdownSv,
+  getAllAppointmentsForDropdownSv,
 } from "../services/medicalRecord_service.js";
 import { success, fail } from "../utils/response.js";
 
@@ -76,5 +78,27 @@ export const deleteMedicalRecord = async (req, res) => {
   } catch (err) {
     console.error("deleteMedicalRecord error:", err);
     return fail(res, err);
+  }
+};
+
+// Fetch all patients for dropdown
+export const getAllPatientsForDropdown = async (req, res) => {
+  try {
+    const patients = await getAllPatientsForDropdownSv();
+    return success(res, { data: patients });
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    return fail(res, "Failed to fetch patients", 500);
+  }
+};
+
+// Fetch all appointments for dropdown
+export const getAllAppointmentsForDropdown = async (req, res) => {
+  try {
+    const appointments = await getAllAppointmentsForDropdownSv();
+    return success(res, { data: appointments });
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    return fail(res, "Failed to fetch appointments", 500);
   }
 };

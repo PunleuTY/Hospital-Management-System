@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
   const User = sequelize.define(
-    "Users",
+    "User",
     {
       userId: {
         type: DataTypes.INTEGER,
@@ -15,7 +15,6 @@ export default (sequelize, DataTypes) => {
         field: "username",
       },
       password: {
-        // Hash Password
         type: DataTypes.STRING,
         allowNull: false,
         field: "password",
@@ -29,6 +28,7 @@ export default (sequelize, DataTypes) => {
     {
       tableName: "users",
       freezeTableName: true,
+      underscored: true,
       timestamps: true,
       createdAt: false,
       updatedAt: "last_modified",

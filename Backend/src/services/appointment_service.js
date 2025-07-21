@@ -9,7 +9,6 @@ export const listAllAppointments = async ({ limit, offset }) => {
       "patientId",
       "doctorId",
       "dateTime",
-      "purpose",
       "status",
     ],
     order: [["appointmentId", "ASC"]],

@@ -4,6 +4,7 @@ const { User, Role } = db;
 
 // Find user with role information
 export const findUser = (username) => {
+  console.log("user: ", username);
   return User.findOne({
     where: { username },
     include: [

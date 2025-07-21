@@ -1,77 +1,90 @@
 import React, { useState, useEffect } from "react";
 import { HiChevronDown } from "react-icons/hi";
+import { createPortal } from "react-dom";
 
 const Dropdown = ({
   options = [],
   defaultLabel = "Select",
   onSelect,
-  className,
+  className = "",
   reset,
-  onClick,
-  value, // Add value prop to control the dropdown
-  ...props
+  selected,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(value || null);
+  const [currentLabel, setCurrentLabel] = useState(defaultLabel);
 
-  // Update selected when value prop changes
+  // Sync label when `selected` changes
   useEffect(() => {
-    setSelected(value || null);
-  }, [value]);
+    if (selected && options.length) {
+      const opt = options.find(
+        (o) => o.value.toString() === selected.toString()
+      );
+      if (opt) {
+        setCurrentLabel(opt.label);
+      }
+    }
+  }, [selected, options, defaultLabel]);
 
-  // Reset the dropdown when reset value changes
   useEffect(() => {
     if (reset) {
-      setSelected(null);
+      setCurrentLabel(defaultLabel);
       setIsOpen(false);
     }
-  }, [reset]);
+  }, [reset, defaultLabel]);
 
   const handleSelect = (option) => {
-    setSelected(option);
-    onSelect(option);
+    setCurrentLabel(option.label);
+    onSelect(option.value);
     setIsOpen(false);
   };
 
-  const handleDropdownClick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    setIsOpen(!isOpen);
-    if (onClick) onClick(e); // Call the passed onClick handler if it exists
-  };
-
+  // Render the dropdown button + (optionally) the portal’ed menu
   return (
-    <div
-      className={`relative inline-block w-60 ${className}`}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button
-        type="button"
-        onClick={handleDropdownClick}
-        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-black tween ${
-          selected ? "text-gray-800" : "text-gray-400"
-        }`}
-      >
-        <span>{selected || value || defaultLabel}</span>
-        <HiChevronDown className="w-5 h-5 text-gray-600" />
-      </button>
+    <>
+      <div className={`relative inline-block w-full ${className}`}>
+        <button
+          type="button"
+          onClick={() => setIsOpen((o) => !o)}
+          className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black ${
+            currentLabel !== defaultLabel ? "text-gray-800" : "text-gray-400"
+          }`}
+        >
+          <span className="truncate">{currentLabel}</span>
+          <HiChevronDown className="w-5 h-5 text-gray-600" />
+        </button>
+      </div>
 
-      {isOpen && (
-        <ul className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-          {options.map((option, index) => (
-            <li
-              key={index}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent event bubbling when selecting an option
-                handleSelect(option);
-              }}
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-            >
-              {option}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+      {isOpen &&
+        createPortal(
+          <ul
+            className="absolute top-[0px] left-[0px] z-50 mt-2 w-60 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+            style={{
+              // position the portal’d menu right under the button
+              position: "absolute",
+              // find the button’s DOM node to align with it
+              transform: (() => {
+                const btn = document.querySelector(`.${className} button`);
+                if (!btn) {
+                  return "";
+                }
+                const { bottom, left, width } = btn.getBoundingClientRect();
+                return `translate(${left}px, ${bottom}px)`;
+              })(),
+            }}
+          >
+            {options.map((option, idx) => (
+              <li
+                key={idx}
+                onClick={() => handleSelect(option)}
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
+    </>
   );
 };
 
