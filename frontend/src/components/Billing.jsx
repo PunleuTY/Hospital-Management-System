@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Button from "./common/Button.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
-import StatisticCard from "./common/statisticCard.jsx";
+import Confirm from "./common/Confirm.jsx";
 import Dropdown from "./common/Dropdown.jsx";
 import {
   Table,
@@ -17,6 +17,7 @@ import {
   TableCell,
 } from "./common/Table.jsx";
 import Pagination from "./common/Pagination.jsx";
+import { success, error } from "./utils/toast.js";
 
 // Form components
 import AddBilling from "./form/addBilling.jsx";
@@ -46,12 +47,8 @@ export default function Billing() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [stat, setStat] = useState({
-    totalPaid: 0,
-    totalUnpaid: 0,
-    totalBills: 0,
-    totalUnpaidCount: 0,
-  });
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -97,27 +94,6 @@ export default function Billing() {
     }
   };
 
-  const getStat = async () => {
-    try {
-      const summary = await summarizeBilling();
-      console.log("Summary", summary);
-      setStat({
-        totalPaid: summary.data.totalPaid || 0,
-        totalUnpaid: summary.data.totalUnpaid || 0,
-        totalBills: summary.data.totalBills || 0,
-        totalUnpaidCount: summary.data.totalUnpaidCount || 0,
-      });
-    } catch (err) {
-      console.error("Failed to fetch billing statistics:", err);
-      setStat({
-        totalPaid: 0,
-        totalUnpaid: 0,
-        totalBills: 0,
-        totalUnpaidCount: 0,
-      });
-    }
-  };
-
   // ===== EVENT HANDLERS =====
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -147,7 +123,6 @@ export default function Billing() {
 
       // Refresh the billing list from first page
       await fetchAllBilling(1);
-      await getStat(); // Refresh stats
 
       // Close the modal
       closeModal();
@@ -178,7 +153,6 @@ export default function Billing() {
 
       // Refresh the billing list
       fetchAllBilling(currentPage);
-      getStat(); // Refresh stats
 
       // Close the modal
       closeEditModal();
@@ -213,9 +187,6 @@ export default function Billing() {
           bill.billId === billId ? { ...bill, paymentStatus: newStatus } : bill
         )
       );
-
-      // Refresh stats
-      getStat();
     } catch (error) {
       console.error("Failed to update bill status:", error);
     }
@@ -223,21 +194,14 @@ export default function Billing() {
 
   const handleDeleteBill = async (billId) => {
     try {
-      if (
-        window.confirm("Are you sure you want to delete this billing record?")
-      ) {
-        console.log("Deleting bill:", billId);
-        await deleteBill(billId);
-        console.log("Bill deleted successfully");
-
-        // Remove from local state
-        setBills((prev) => prev.filter((bill) => bill.billId !== billId));
-
-        // Refresh stats
-        getStat();
-      }
-    } catch (error) {
-      console.error("Failed to delete bill:", error);
+      const response = await deleteBill(billId);
+      console.log("Bill deleted successfully:", response);
+      fetchAllBilling(currentPage);
+      success("Bill deleted successfully");
+      setShowConfirm(false);
+    } catch (err) {
+      console.error("Failed to delete bill:", err.message);
+      error("Failed to delete bill");
     }
   };
 
@@ -249,7 +213,6 @@ export default function Billing() {
   // ===== EFFECTS =====
   useEffect(() => {
     fetchAllBilling(currentPage);
-    getStat();
   }, []);
 
   // ===== RENDER =====
@@ -284,154 +247,88 @@ export default function Billing() {
               </TableHeader>
               {/* Table body */}
               <TableBody>
-                {bills.length > 0
-                  ? bills.map((bill) => (
-                      <TableRow
-                        key={bill.billId}
-                        className="cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => openViewModal(bill)}
-                      >
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
-                          {bill.billId}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
-                          {bill.receptionist?.firstName}{" "}
-                          {bill.receptionist?.lastName}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
-                          {bill.patient?.firstName} {bill.patient?.lastName}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.treatmentFee?.toFixed(2) || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.medicationFee?.toFixed(2) || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.labTestFee?.toFixed(2) || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.consultationFee?.toFixed(2) || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap font-bold max-w-[100px]">
-                          ${bill.totalAmount?.toFixed(2) || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 max-w-[140px]">
-                          <Dropdown
-                            className="w-max"
-                            options={["Paid", "Unpaid"]}
-                            value={
-                              bill.paymentStatus?.charAt(0).toUpperCase() +
-                                bill.paymentStatus?.slice(1) || "Unpaid"
-                            }
-                            defaultLabel={
-                              bill.paymentStatus?.charAt(0).toUpperCase() +
-                                bill.paymentStatus?.slice(1) || "Unpaid"
-                            }
-                            onSelect={(value) =>
-                              handleStatusChange(bill.billId, value)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[120px]">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="text-blue-500 hover:text-blue-700"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(bill);
-                              }}
-                              title="Edit"
-                            >
-                              <FiEdit className="w-4 h-4 cursor-pointer" />
-                            </button>
-                            <button
-                              className="text-red-500 hover:text-red-700"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteBill(bill.billId);
-                              }}
-                              title="Delete"
-                            >
-                              <TiDelete className="w-5 h-5 cursor-pointer" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : mockBillsData.map((bill) => (
-                      <TableRow
-                        key={bill.id}
-                        className="cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => openViewModal(bill)}
-                      >
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
-                          {bill.id}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
-                          {bill.receptionist}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
-                          {bill.patient}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.treatmentFee.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.medicationFee.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.labTestFee.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                          ${bill.consultationFee.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap font-bold max-w-[100px]">
-                          ${bill.total.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 max-w-[140px]">
-                          <Dropdown
-                            className="w-max"
-                            options={["Paid", "Unpaid"]}
-                            value={
-                              bill.status?.charAt(0).toUpperCase() +
-                                bill.status?.slice(1) || "Unpaid"
-                            }
-                            defaultLabel={
-                              bill.status?.charAt(0).toUpperCase() +
-                                bill.status?.slice(1) || "Unpaid"
-                            }
-                            onSelect={(value) =>
-                              handleStatusChange(bill.id, value)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[120px]">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="text-blue-500 hover:text-blue-700"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditModal(bill);
-                              }}
-                              title="Edit"
-                            >
-                              <FiEdit className="w-4 h-4 cursor-pointer" />
-                            </button>
-                            <button
-                              className="text-red-500 hover:text-red-700"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteBill(bill.id);
-                              }}
-                              title="Delete"
-                            >
-                              <TiDelete className="w-5 h-5 cursor-pointer" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                {bills.length > 0 ? (
+                  bills.map((bill) => (
+                    <TableRow
+                      key={bill.billId}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => openViewModal(bill)}
+                    >
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[80px]">
+                        {bill.billId}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                        {bill.receptionist?.firstName}{" "}
+                        {bill.receptionist?.lastName}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap truncate max-w-[120px]">
+                        {bill.patient?.firstName} {bill.patient?.lastName}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
+                        ${bill.treatmentFee?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
+                        ${bill.medicationFee?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
+                        ${bill.labTestFee?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
+                        ${bill.consultationFee?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap font-bold max-w-[100px]">
+                        ${bill.totalAmount?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 max-w-[140px]">
+                        <Dropdown
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          className="w-max"
+                          options={["Paid", "Unpaid"]}
+                          value={
+                            bill.paymentStatus?.charAt(0).toUpperCase() +
+                              bill.paymentStatus?.slice(1) || "Unpaid"
+                          }
+                          defaultLabel={
+                            bill.paymentStatus?.charAt(0).toUpperCase() +
+                              bill.paymentStatus?.slice(1) || "Unpaid"
+                          }
+                          onSelect={(value) =>
+                            handleStatusChange(bill.billId, value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[120px]">
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="text-blue-500 hover:text-blue-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditModal(bill);
+                            }}
+                            title="Edit"
+                          >
+                            <FiEdit className="w-4 h-4 cursor-pointer" />
+                          </button>
+                          <button
+                            className="text-red-500 hover:text-red-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(bill.billId);
+                              setShowConfirm(true);
+                            }}
+                            title="Delete"
+                          >
+                            <TiDelete className="w-5 h-5 cursor-pointer" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <div>No bills found</div>
+                )}
               </TableBody>
             </Table>
           </div>
@@ -487,6 +384,16 @@ export default function Billing() {
       >
         {selectedRecord && <BillingView data={selectedRecord} />}
       </ModalWrapper>
+
+      <Confirm
+        open={showConfirm}
+        title="Delete Item"
+        message="Are you sure?"
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleDeleteBill}
+        id={deleteId}
+      />
+
       {/* Global CSS to hide scrollbar */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {

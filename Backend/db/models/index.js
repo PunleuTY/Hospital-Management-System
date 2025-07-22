@@ -2,7 +2,10 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Sequelize, DataTypes } from "sequelize";
-import configJson from "../config/config.json" assert { type: "json" };
+import { createRequire } from "module";
+import { pathToFileURL } from "url";
+const require = createRequire(import.meta.url);
+const configJson = require("../config/config.json");
 
 // Setup paths
 const __filename = fileURLToPath(import.meta.url);
@@ -46,7 +49,9 @@ const files = fs
   );
 
 for (const file of files) {
-  const importedModule = await import(path.join(__dirname, file));
+  const importedModule = await import(
+    pathToFileURL(path.join(__dirname, file)).href
+  );
   const defineModel = importedModule.default || importedModule;
 
   if (typeof defineModel !== "function") {

@@ -203,7 +203,7 @@ export default function AddBilling({ onClose, onAddBill, isLoading }) {
                 <div>
                   <Label required>Receptionist ID</Label>
                   {console.log(
-                    "🎯 Dropdown receptionistIds prop:",
+                    "Dropdown receptionistIds prop:",
                     receptionistIds
                   )}
                   <Dropdown

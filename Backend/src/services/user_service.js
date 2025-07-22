@@ -1,6 +1,5 @@
 import db from "../../db/models/index.js";
-import sequelize from "../../db/config/db_config.js";
-const { User, Role } = db;
+const { User, Role, sequelize } = db;
 
 // Find user with role information
 export const findUser = (username) => {
@@ -33,7 +32,7 @@ export const findUserById = (id) => {
 // Get all users with roles
 export const getAllUsers = async () => {
   try {
-    const users = await User.findAll({
+    return await User.findAll({
       include: [
         {
           model: Role,
@@ -41,11 +40,9 @@ export const getAllUsers = async () => {
           attributes: ["role_id", "role_name"],
         },
       ],
-      attributes: { exclude: ["password"] }, // Don't return passwords
+      attributes: { exclude: ["password"] },
       order: [["user_id", "ASC"]],
     });
-
-    return users;
   } catch (error) {
     console.error("Error in listUsers:", error);
     throw error;
@@ -54,7 +51,7 @@ export const getAllUsers = async () => {
 
 export const getUsersByRole = async () => {
   try {
-    const usersByRole = await User.findAll({
+    return await User.findAll({
       attributes: [
         // Fix: Use the correct table alias "Users" instead of "User"
         [sequelize.fn("COUNT", sequelize.col("Users.user_id")), "userCount"],
@@ -69,8 +66,6 @@ export const getUsersByRole = async () => {
       group: ["role.role_id", "role.role_name"],
       order: [["role", "role_name", "ASC"]],
     });
-
-    return usersByRole;
   } catch (error) {
     console.error("Error in getUsersByRole:", error);
     throw error;

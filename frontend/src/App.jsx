@@ -25,10 +25,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={getToken() ? <DashboardWithLayout /> : <Login />}
-        />
+        <Route path="/" element={<Login />} />
         <Route
           path="/dashboard/*"
           element={
@@ -37,10 +34,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <ToastContainer />
     </Router>
   );
+}
+
+function NotFound() {
+  return <div>404 - Not Found</div>;
 }
 
 function DashboardWithLayout() {

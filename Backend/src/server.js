@@ -3,6 +3,7 @@ import cors from "cors";
 import { notFound, catchErrors } from "./middlewares/error_middlewares.js";
 import sequelize from "../db/config/db_config.js";
 import "../config.js";
+import { insertInitialData } from "../db/seeders/seeder.js";
 
 import logger from "./middlewares/logger_middleware.js";
 
@@ -46,8 +47,9 @@ const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
-    await sequelize.sync({ alter: true });
-    // console.log("Skipping database sync - using existing schema.");
+    await sequelize.sync({});
+    await insertInitialData();
+    console.log("Initial data inserted successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     process.exit(1);

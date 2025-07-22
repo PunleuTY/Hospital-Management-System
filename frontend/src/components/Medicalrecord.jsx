@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Button from "./common/Button.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
+import Pagination from "./common/Pagination.jsx";
 import {
   Table,
   TableHeader,
@@ -10,7 +11,6 @@ import {
   TableHead,
   TableCell,
 } from "./common/Table.jsx";
-import Pagination from "./Common/Pagination.jsx";
 import AddMedicalRecord from "./form/addMedicalRecord.jsx";
 import ModalColumn from "./form/ModalColumn.jsx";
 import MedicalRecordView from "./view/MedicalRecordView.jsx";
@@ -21,6 +21,7 @@ import {
   createMedicalRecord,
   deleteMedicalRecord,
 } from "../service/medicalrecordAPI.js";
+import { FiEdit } from "react-icons/fi";
 
 export default function MedicalRecord() {
   const [medicalrecords, setMedicalRecords] = useState([]);
@@ -74,7 +75,7 @@ export default function MedicalRecord() {
   const handleAddMedicalRecord = async (formData) => {
     try {
       const { data } = await getAllMedicalRecords(1, itemsPerPage);
-      const totalPages = data.meta.totalPages;
+      const { totalPages } = data.meta;
 
       setCurrentPage(totalPages);
       await fetchAllMedicalRecord(totalPages, itemsPerPage);
@@ -110,7 +111,9 @@ export default function MedicalRecord() {
 
   return (
     <div className="h-full overflow-auto p-3">
-      <PageBlurWrapper isBlurred={modalData.isOpen || isModalOpen || isViewModalOpen}>
+      <PageBlurWrapper
+        isBlurred={modalData.isOpen || isModalOpen || isViewModalOpen}
+      >
         <div className="w-full flex flex-col gap-3 px-1">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -136,7 +139,10 @@ export default function MedicalRecord() {
               <TableBody>
                 {medicalrecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={header.length} className="text-center py-4 text-gray-500">
+                    <TableCell
+                      colSpan={header.length}
+                      className="text-center py-4 text-gray-500"
+                    >
                       No records found.
                     </TableCell>
                   </TableRow>
@@ -144,12 +150,10 @@ export default function MedicalRecord() {
                   medicalrecords.map((record) => (
                     <TableRow
                       key={record.recordId}
+                      onClick={() => openViewModal(record)}
                       className="cursor-pointer hover:bg-gray-50 transition-colors"
                     >
-                      <TableCell
-                        onClick={() => openViewModal(record)}
-                        className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate"
-                      >
+                      <TableCell className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate">
                         {record.recordId}
                       </TableCell>
                       <TableCell className="text-xs px-2 py-2 whitespace-nowrap max-w-[80px] truncate">
@@ -178,7 +182,10 @@ export default function MedicalRecord() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openModalColumns("Prescription", record.prescription);
+                              openModalColumns(
+                                "Prescription",
+                                record.prescription
+                              );
                             }}
                             className="text-blue-600 hover:text-blue-800"
                           >
@@ -245,14 +252,23 @@ export default function MedicalRecord() {
 
       {/* Add Record Modal */}
       <ModalWrapper isOpen={isModalOpen} onClose={closeModal} size="md">
-        <AddMedicalRecord
-          onClose={closeModal}
-          onAddMedicalRecord={handleAddMedicalRecord}
-        />
+        <div
+          style={{ maxHeight: "80vh", overflowY: "auto" }}
+          className="scrollbar-hide"
+        >
+          <AddMedicalRecord
+            onClose={closeModal}
+            onAddMedicalRecord={handleAddMedicalRecord}
+          />
+        </div>
       </ModalWrapper>
 
       {/* Column View Modal */}
-      <ModalWrapper isOpen={modalData.isOpen} onClose={closeModalColumns} size="md">
+      <ModalWrapper
+        isOpen={modalData.isOpen}
+        onClose={closeModalColumns}
+        size="md"
+      >
         <ModalColumn
           isOpen={modalData.isOpen}
           onClose={closeModalColumns}
