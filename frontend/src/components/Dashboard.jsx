@@ -43,6 +43,26 @@ export default function Dashboard() {
     infoCard: "border flex-1 p-3 py-5 rounded-md flex flex-col gap-2",
   };
 
+  // Helper Functions
+  // ---------------------------------------------------------------------------
+
+  // Formats a date-time string to a local time string (HH:MM)
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) {
+      return "N/A";
+    }
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Formats a number as a USD currency string
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
   // Data for dashboard info cards
   const cardData = [
     {
@@ -143,26 +163,6 @@ export default function Dashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
     fetchDashboardData();
-  };
-
-  // Helper Functions
-  // ---------------------------------------------------------------------------
-
-  // Formats a date-time string to a local time string (HH:MM)
-  const formatTime = (dateTimeString) => {
-    if (!dateTimeString) {
-      return "N/A";
-    }
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  // Formats a number as a USD currency string
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
   };
 
   // Effects
