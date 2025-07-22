@@ -3,9 +3,20 @@ import {
   findUser,
   createUserSv,
   getUserStatistics,
+  getAllUsersSv,
 } from "../services/user_service.js";
 import bcrypt from "bcrypt";
 import { success, fail } from "../utils/response.js";
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await getAllUsersSv();
+    return success(res, users);
+  } catch (err) {
+    console.error("Error getting all users:", err);
+    return fail(res, err);
+  }
+};
 
 export const getUserSummarize = async (req, res) => {
   try {
@@ -18,18 +29,14 @@ export const getUserSummarize = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  console.log(req.body);
   const { username, password, role } = req.body;
-  console.log(username, password, role);
 
-  // Validate required fields
   if (!username || !password || !role) {
     return res.status(400).json({
       message: "Username, password, and role are required",
     });
   }
 
-  // Validate data types
   if (typeof username !== "string" || typeof password !== "string") {
     return res.status(400).json({
       message: "Username and password must be strings",
@@ -38,7 +45,6 @@ export const createUser = async (req, res) => {
 
   try {
     const existingUser = await findUser(username);
-
     if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
     }

@@ -33,7 +33,7 @@ export const deletePatient = async (id) => {
 };
 
 export const getAllPatientIds = async () => {
-  const response = await axios.get(`${API_URL}/patients/id`);
+  const response = await axios.get(`${API_URL}/id`);
   return response.data.data;
 };
 

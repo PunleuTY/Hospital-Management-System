@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Button from "../common/Button";
 import Dropdown from "../common/Dropdown";
 import Label from "../common/Label";
@@ -11,11 +11,15 @@ import { HiOutlineCalculator } from "react-icons/hi";
 import { FaUserDoctor } from "react-icons/fa6";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 
-//import API
+// API imports
 import { getAllPatientIds } from "../../service/patientAPI";
 import { getAllReceptionistIds } from "../../service/staffAPI";
 
 export default function EditBilling({ onClose, onUpdateBill, initialData }) {
+  // State Management
+  // ---------------------------------------------------------------------------
+
+  // Holds the form input data for billing, initialized with initialData
   const [formData, setFormData] = useState({
     patientID: initialData?.patientId || "",
     receptionistID: initialData?.receptionistId || "",
@@ -27,44 +31,79 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
     paymentStatus: initialData?.paymentStatus || "",
   });
 
+  // Stores fetched patient IDs for dropdown
   const [patientIds, setPatientIds] = useState([]);
+  // Stores fetched receptionist IDs for dropdown
   const [receptionistIds, setReceptionistIds] = useState([]);
 
-  // Fetch patient IDs and receptionist IDs on component mount
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  // Fetches patient and receptionist IDs on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchIds = async () => {
       try {
-        const [patientsRes, receptionistsRes] = await Promise.all([
-          getAllPatientIds(),
-          getAllReceptionistIds(),
-        ]);
-
-        if (patientsRes?.data?.data) {
-          setPatientIds(
-            patientsRes.data.data.map((id) => ({
-              value: id,
-              label: id.toString(),
-            }))
-          );
+        // Fetch patients, handle potential errors
+        let patients;
+        try {
+          patients = await getAllPatientIds();
+        } catch (patientError) {
+          console.error("Error fetching patients:", patientError);
+          patients = [];
         }
 
-        if (receptionistsRes?.data?.data) {
-          setReceptionistIds(
-            receptionistsRes.data.data.map((id) => ({
-              value: id,
-              label: id.toString(),
-            }))
-          );
+        // Fetch receptionists, handle potential errors
+        let receptionists;
+        try {
+          receptionists = await getAllReceptionistIds();
+        } catch (receptionistError) {
+          console.error("Error fetching receptionists:", receptionistError);
+          receptionists = [];
         }
+
+        // Process and set patient IDs
+        let processedPatients = [];
+        if (Array.isArray(patients?.data)) {
+          processedPatients = patients.data;
+        } else if (Array.isArray(patients)) {
+          processedPatients = patients;
+        } else if (patients?.data && Array.isArray(patients.data)) {
+          processedPatients = patients.data;
+        }
+        setPatientIds(
+          processedPatients
+            .map((id) =>
+              typeof id === "object"
+                ? (id?.patientId || id?.id || "").toString()
+                : id?.toString()
+            )
+            .filter(Boolean)
+        );
+
+        // Process and set receptionist IDs
+        let processedReceptionists = [];
+        if (Array.isArray(receptionists)) {
+          processedReceptionists = receptionists;
+        } else if (receptionists?.data && Array.isArray(receptionists.data)) {
+          processedReceptionists = receptionists.data;
+        }
+        setReceptionistIds(
+          processedReceptionists
+            .map((r) => {
+              const id =
+                typeof r === "object" ? r?.staffId || r?.staff_id || r?.id : r;
+              return id?.toString();
+            })
+            .filter(Boolean)
+        );
       } catch (error) {
         console.error("Error fetching IDs:", error);
       }
     };
+    fetchIds();
+  }, []); // Runs once on mount
 
-    fetchData();
-  }, []);
-
-  // Automatically calculate total amount
+  // Automatically calculates total amount when fee inputs change
   useEffect(() => {
     const total =
       Number(formData.treatmentFee) +
@@ -82,11 +121,15 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
     formData.consultationFee,
   ]);
 
+  // Event Handlers
+  // ---------------------------------------------------------------------------
+
+  // Handles form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Edit billing form submitted with data:", formData);
 
-    // Use the actual form data structure expected by the API
+    // Prepare data for parent component
     const billData = {
       receptionistId: formData.receptionistID,
       patientId: formData.patientID,
@@ -98,10 +141,17 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
       paymentStatus: formData.paymentStatus.toLowerCase(),
     };
 
-    if (onUpdateBill) onUpdateBill(initialData.billId, billData);
-    if (onClose) onClose();
+    // Call parent update function if available
+    if (onUpdateBill) {
+      onUpdateBill(initialData.billId, billData);
+    }
+    // Close the form/modal
+    if (onClose) {
+      onClose();
+    }
   };
 
+  // Updates form data state on input change
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -109,8 +159,12 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
     }));
   };
 
+  // Render Logic
+  // ---------------------------------------------------------------------------
+
   return (
     <Card>
+      {/* Card Header */}
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-2">
           <HiOutlineCalculator className="text-2xl text-blue-600" />
@@ -118,6 +172,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
         </div>
       </CardHeader>
 
+      {/* Card Content */}
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <motion.div
@@ -125,7 +180,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
           >
-            {/* Patient and Staff */}
+            {/* Patient and Staff ID Section */}
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-3">
                 <FaUserDoctor className="text-l text-blue-1000" />
@@ -139,7 +194,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
                   <Dropdown
                     options={patientIds}
                     defaultLabel="Select Patient ID"
-                    value={formData.patientID}
+                    selected={formData.patientID}
                     onSelect={(value) => handleInputChange("patientID", value)}
                   />
                 </div>
@@ -148,7 +203,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
                   <Dropdown
                     options={receptionistIds}
                     defaultLabel="Select Receptionist ID"
-                    value={formData.receptionistID}
+                    selected={formData.receptionistID}
                     onSelect={(value) =>
                       handleInputChange("receptionistID", value)
                     }
@@ -157,7 +212,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
               </div>
             </div>
 
-            {/* Billing Fees */}
+            {/* Billing Fees Section */}
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <RiMoneyDollarCircleLine className="text-2xl text-blue-1000" />
@@ -215,7 +270,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
                 </div>
               </div>
 
-              {/* Payment Status */}
+              {/* Payment Status Dropdown */}
               <div className="mt-4">
                 <Label required>Payment Status</Label>
                 <Dropdown
@@ -228,7 +283,7 @@ export default function EditBilling({ onClose, onUpdateBill, initialData }) {
                 />
               </div>
 
-              {/* Total Amount */}
+              {/* Total Amount Input (Read-only) */}
               <div className="mt-4">
                 <Label>Total Amount</Label>
                 <Input

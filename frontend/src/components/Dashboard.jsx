@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
+
+// Common components
+import Button from "./common/Button.jsx";
+import ModalWrapper from "./common/Modal-wrapper.jsx";
+import AddAppointment from "./form/addAppointment.jsx";
+
+// Icons
 import { FiUsers } from "react-icons/fi";
 import { FaDollarSign } from "react-icons/fa6";
 import { MdOutlineDateRange } from "react-icons/md";
 import { FaRegClock } from "react-icons/fa";
-import Button from "./common/Button.jsx";
-import ModalWrapper from "./common/Modal-wrapper.jsx";
-import AddAppointment from "./form/addAppointment.jsx";
 
 // API imports
 import {
@@ -16,8 +20,14 @@ import { getAllPatients } from "../service/patientAPI.js";
 import { summarizeBilling } from "../service/billingAPI.js";
 
 export default function Dashboard() {
+  // State Management
+  // ---------------------------------------------------------------------------
+
+  // Controls visibility of Add Appointment modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Stores upcoming appointments data
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  // Stores dashboard statistics
   const [dashboardStats, setDashboardStats] = useState({
     totalPatients: 0,
     totalAppointments: 0,
@@ -25,76 +35,15 @@ export default function Dashboard() {
     isLoading: true,
   });
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => {
-    setIsModalOpen(false);
-    // Refresh data when modal closes (in case new appointment was added)
-    fetchDashboardData();
-  };
+  // Constants
+  // ---------------------------------------------------------------------------
+
+  // Styles for info cards
   const style = {
     infoCard: "border flex-1 p-3 py-5 rounded-md flex flex-col gap-2",
   };
 
-  // ===== API FUNCTIONS =====
-  const fetchDashboardData = async () => {
-    try {
-      setDashboardStats((prev) => ({ ...prev, isLoading: true }));
-
-      // Fetch all data in parallel
-      const [
-        patientsResponse,
-        appointmentsResponse,
-        billingsResponse,
-        upcomingResponse,
-      ] = await Promise.all([
-        getAllPatients(1, 1), // Just get metadata for total count
-        getAllAppointments(1, 1), // Just get metadata for total count
-        summarizeBilling(), // Get all billings to calculate total revenue
-        getUpcomingAppointments(),
-      ]);
-
-      console.log("Dashboard API Responses:", {
-        patients: patientsResponse,
-        appointments: appointmentsResponse,
-        billings: billingsResponse,
-        upcoming: upcomingResponse,
-      });
-
-      setDashboardStats({
-        totalPatients: patientsResponse.data.meta?.total,
-        totalAppointments: appointmentsResponse.data.meta?.total,
-        totalRevenue: billingsResponse.data.totalPaid,
-        isLoading: false,
-      });
-
-      setUpcomingAppointments(upcomingResponse.data || []);
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-      setDashboardStats((prev) => ({ ...prev, isLoading: false }));
-      setUpcomingAppointments([]);
-    }
-  };
-
-  const formatTime = (dateTimeString) => {
-    if (!dateTimeString) {
-      return "N/A";
-    }
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
-  // ===== EFFECTS =====
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
+  // Data for dashboard info cards
   const cardData = [
     {
       title: "Total Patients",
@@ -140,8 +89,101 @@ export default function Dashboard() {
     },
   ];
 
+  // API Functions
+  // ---------------------------------------------------------------------------
+
+  // Fetches all dashboard data (patients, appointments, billing summary, upcoming appointments)
+  const fetchDashboardData = async () => {
+    try {
+      setDashboardStats((prev) => ({ ...prev, isLoading: true }));
+
+      // Fetch all data in parallel
+      const [
+        patientsResponse,
+        appointmentsResponse,
+        billingsResponse,
+        upcomingResponse,
+      ] = await Promise.all([
+        getAllPatients(1, 1), // Get metadata for total count
+        getAllAppointments(1, 1), // Get metadata for total count
+        summarizeBilling(), // Get all billings to calculate total revenue
+        getUpcomingAppointments(),
+      ]);
+
+      console.log("Dashboard API Responses:", {
+        patients: patientsResponse,
+        appointments: appointmentsResponse,
+        billings: billingsResponse,
+        upcoming: upcomingResponse,
+      });
+
+      // Update dashboard statistics
+      setDashboardStats({
+        totalPatients: patientsResponse.data.meta?.total,
+        totalAppointments: appointmentsResponse.data.meta?.total,
+        totalRevenue: billingsResponse.data.totalPaid,
+        isLoading: false,
+      });
+      // Update upcoming appointments
+      console.log("Upcoming:", upcomingResponse.data.data);
+      setUpcomingAppointments(upcomingResponse.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      setDashboardStats((prev) => ({ ...prev, isLoading: false }));
+      setUpcomingAppointments([]);
+    }
+  };
+
+  // Event Handlers
+  // ---------------------------------------------------------------------------
+
+  // Opens the Add Appointment modal
+  const openModal = () => setIsModalOpen(true);
+  // Closes the Add Appointment modal and refetches dashboard data
+  const closeModal = () => {
+    setIsModalOpen(false);
+    fetchDashboardData();
+  };
+
+  // Helper Functions
+  // ---------------------------------------------------------------------------
+
+  // Formats a date-time string to a local time string (HH:MM)
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) {
+      return "N/A";
+    }
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Formats a number as a USD currency string
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  // Fetches dashboard data on initial render
+  useEffect(() => {
+    fetchDashboardData();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // Logs upcoming appointments when they change (for debugging)
+  useEffect(() => {
+    console.log(upcomingAppointments);
+  }, [upcomingAppointments]);
+
+  // Render Logic
+  // ---------------------------------------------------------------------------
+
   return (
     <div className="p-5 h-full flex flex-col gap-5 overflow-auto">
+      {/* Info Cards Section */}
       <div className="flex flex-col md:flex-row gap-5 justify-between">
         {cardData.map((card, index) => {
           return (
@@ -157,6 +199,8 @@ export default function Dashboard() {
           );
         })}
       </div>
+
+      {/* Upcoming Appointments Section */}
       <div className="flex-1 flex gap-3 rounded-md">
         <div className="flex-1 flex flex-col gap-3 p-3 border justify-between border-(--color-light-gray) rounded-md">
           <div className="flex items-center gap-3">
@@ -165,7 +209,7 @@ export default function Dashboard() {
           </div>
           <div
             className="flex-1 flex flex-col overflow-y-auto gap-3"
-            style={{ maxHeight: "300px" }} // Set a fixed height for the scrollable area
+            style={{ maxHeight: "300px" }} // Fixed height for scrollable area
           >
             {upcomingAppointments.length > 0 ? (
               upcomingAppointments.map((appointment, index) => (
@@ -179,11 +223,13 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+          {/* Add Appointment Button */}
           <Button
             content={"Add Appointment"}
             className={"w-full"}
             onClick={openModal}
           />
+          {/* Add Appointment Modal */}
           <ModalWrapper
             isOpen={isModalOpen}
             onClose={closeModal}
@@ -200,6 +246,7 @@ export default function Dashboard() {
   );
 }
 
+// InfoCard Component: Displays a single dashboard statistic
 const InfoCard = ({ title, value, icon: Icon, color, info, style }) => {
   return (
     <div className={`${style.infoCard} ${color.bg} ${color.border}`}>
@@ -215,7 +262,9 @@ const InfoCard = ({ title, value, icon: Icon, color, info, style }) => {
   );
 };
 
+// AppointmentCard Component: Displays details of an upcoming appointment
 const AppointmentCard = ({ data }) => {
+  // Formats a date-time string to a local time string (HH:MM)
   const formatTime = (dateTimeString) => {
     if (!dateTimeString) {
       return "N/A";
@@ -224,10 +273,12 @@ const AppointmentCard = ({ data }) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  // Get patient name or default
   const patientName = data.patient
     ? `${data.patient.firstName} ${data.patient.lastName}`
     : "Unknown Patient";
 
+  // Get doctor name or default
   const doctorName = data.doctor
     ? `Dr. ${data.doctor.firstName} ${data.doctor.lastName}`
     : "Unknown Doctor";

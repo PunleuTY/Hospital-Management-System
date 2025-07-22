@@ -16,7 +16,7 @@ import MedicalRecord from "./components/Medicalrecord.jsx";
 
 import Login from "./components/Login.jsx";
 import AddStaff from "./components/form/addStaff.jsx";
-import AddUser from "./components/addUser.jsx";
+import User from "./components/User.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 import { getToken } from "./utils/auth.js";
@@ -57,7 +57,7 @@ function DashboardWithLayout() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/appointments" element={<Appointment />} />
-            <Route path="/staff/add" element={<AddUser />} />
+            <Route path="/staff/add" element={<User />} />
             <Route path="/staff" element={<Staff />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/patient" element={<Patient />} />

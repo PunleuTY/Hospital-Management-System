@@ -1,5 +1,3 @@
-// React hooks
-import { React } from "react";
 import { useState, useEffect } from "react";
 
 // Common components
@@ -7,7 +5,6 @@ import Button from "./common/Button.jsx";
 import PageBlurWrapper from "./common/Blur-wrapper.jsx";
 import ModalWrapper from "./common/Modal-wrapper.jsx";
 import Confirm from "./common/Confirm.jsx";
-import Dropdown from "./common/Dropdown.jsx";
 import {
   Table,
   TableHeader,
@@ -21,7 +18,7 @@ import { success, error } from "./utils/toast.js";
 
 // Form components
 import AddBilling from "./form/addBilling.jsx";
-import EditBilling from "./Form/editBilling.jsx";
+import EditBilling from "./form/editBilling.jsx";
 import BillingView from "./view/BillingView.jsx";
 
 // Icons
@@ -34,25 +31,40 @@ import {
   createBill,
   updateBill,
   deleteBill,
-  summarizeBilling,
 } from "../service/billingAPI.js";
 
 export default function Billing() {
-  // ===== STATE MANAGEMENT =====
+  // State Management
+  // ---------------------------------------------------------------------------
+
+  // Stores the list of billing records
   const [bills, setBills] = useState([]);
+  // Stores pagination metadata
   const [metaData, setMetaData] = useState({});
+  // Current page for pagination
   const [currentPage, setCurrentPage] = useState(1);
+  // Controls visibility of Add Billing modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Controls visibility of Edit Billing modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // Stores the selected record for edit/view
   const [selectedRecord, setSelectedRecord] = useState(null);
+  // Controls visibility of Billing View modal
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  // Indicates loading state for API operations
   const [isLoading, setIsLoading] = useState(false);
+  // Controls visibility of confirmation dialog for deletion
   const [showConfirm, setShowConfirm] = useState(false);
+  // Stores the ID of the item to be deleted
   const [deleteId, setDeleteId] = useState(null);
 
+  // Number of items to display per page
   const itemsPerPage = 10;
 
-  // ===== CONSTANTS =====
+  // Constants
+  // ---------------------------------------------------------------------------
+
+  // Table header columns
   const header = [
     "Id",
     "Receptionist",
@@ -66,21 +78,10 @@ export default function Billing() {
     "Actions",
   ];
 
-  const mockBillsData = [
-    {
-      id: "B001",
-      receptionist: "R001",
-      patient: "P001",
-      treatmentFee: 150.0,
-      medicationFee: 75.5,
-      labTestFee: 120.0,
-      consultationFee: 200.0,
-      total: 545.5,
-      status: "paid",
-    },
-  ];
+  // API Functions
+  // ---------------------------------------------------------------------------
 
-  // ===== API FUNCTIONS =====
+  // Fetches all billing records from the API
   const fetchAllBilling = async (page = 1) => {
     try {
       const response = await getAllBillings(page, itemsPerPage);
@@ -94,44 +95,44 @@ export default function Billing() {
     }
   };
 
-  // ===== EVENT HANDLERS =====
+  // Event Handlers
+  // ---------------------------------------------------------------------------
+
+  // Opens the Add Billing modal
   const openModal = () => setIsModalOpen(true);
+  // Closes the Add Billing modal
   const closeModal = () => setIsModalOpen(false);
 
+  // Opens the Edit Billing modal with selected record data
   const openEditModal = (record) => {
     setSelectedRecord(record);
     setIsEditModalOpen(true);
   };
 
+  // Opens the Billing View modal with selected record data
   const openViewModal = (record) => {
     setSelectedRecord(record);
     setIsViewModalOpen(true);
   };
 
+  // Closes the Billing View modal
   const closeViewModal = () => {
     setSelectedRecord(null);
     setIsViewModalOpen(false);
   };
 
-  // Add a new bill
+  // Handles adding a new bill
   const handleAddBill = async (formData) => {
     setIsLoading(true);
     try {
-      const response = await createBill(formData);
-      // Navigate to first page to show the new bill (newest bills usually appear first)
-      setCurrentPage(1);
-
-      // Refresh the billing list from first page
-      await fetchAllBilling(1);
-
-      // Close the modal
-      closeModal();
-
-      // Show success message
-      alert("Billing record created successfully!");
+      await createBill(formData);
+      setCurrentPage(1); // Navigate to first page to show the new bill
+      await fetchAllBilling(1); // Refresh the billing list
+      closeModal(); // Close the modal
+      success("Billing record created successfully"); // Show success message
     } catch (error) {
       console.error("Failed to create bill:", error);
-      alert(
+      error(
         "Failed to create billing record. Please check your data and try again."
       );
     } finally {
@@ -139,37 +140,47 @@ export default function Billing() {
     }
   };
 
+  // Closes the Edit Billing modal
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedRecord(null);
   };
 
-  // Update an existing bill
-  const handleUpdateBill = async (billId, formData) => {
-    try {
-      console.log("Updating bill:", billId, formData);
-      const response = await updateBill(billId, formData);
-      console.log("Bill updated successfully:", response);
-
-      // Refresh the billing list
-      fetchAllBilling(currentPage);
-
-      // Close the modal
-      closeEditModal();
-    } catch (error) {
-      console.error("Failed to update bill:", error);
+  // Determines status badge color based on status string
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "unpaid":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
+  // Handles updating an existing bill
+  const handleUpdateBill = async (billId, formData) => {
+    try {
+      console.log("Updating bill:", billId, formData);
+      await updateBill(billId, formData);
+      console.log("Bill updated successfully");
+      fetchAllBilling(currentPage); // Refresh the billing list
+      closeEditModal(); // Close the modal
+      success("Billing record updated successfully");
+    } catch (error) {
+      console.error("Failed to update bill:", error);
+      error("Failed to update billing record.");
+    }
+  };
+
+  // Handles changing the payment status of a bill
   const handleStatusChange = async (billId, newStatus) => {
     try {
-      // Find the bill to update
       const billToUpdate = bills.find((bill) => bill.billId === billId);
       if (!billToUpdate) {
         return;
       }
 
-      // Call API to update
       await updateBill(billId, {
         receptionistId: billToUpdate.receptionistId,
         patientId: billToUpdate.patientId,
@@ -181,45 +192,56 @@ export default function Billing() {
         paymentStatus: newStatus,
       });
 
-      // Update local state
+      // Update local state to reflect status change
       setBills((prev) =>
         prev.map((bill) =>
           bill.billId === billId ? { ...bill, paymentStatus: newStatus } : bill
         )
       );
+      success("Bill status updated successfully");
     } catch (error) {
       console.error("Failed to update bill status:", error);
+      error("Failed to update bill status.");
     }
   };
 
+  // Handles deleting a bill
   const handleDeleteBill = async (billId) => {
     try {
-      const response = await deleteBill(billId);
-      console.log("Bill deleted successfully:", response);
-      fetchAllBilling(currentPage);
+      await deleteBill(billId);
+      console.log("Bill deleted successfully");
+      fetchAllBilling(currentPage); // Refresh the billing list
       success("Bill deleted successfully");
-      setShowConfirm(false);
+      setShowConfirm(false); // Close confirmation dialog
     } catch (err) {
       console.error("Failed to delete bill:", err.message);
       error("Failed to delete bill");
     }
   };
 
+  // Handles page change for pagination
   const handlePageChange = (page) => {
     setCurrentPage(page);
     fetchAllBilling(page);
   };
 
-  // ===== EFFECTS =====
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  // Fetches billing data on initial render and when currentPage changes
   useEffect(() => {
     fetchAllBilling(currentPage);
-  }, []);
+  }, [currentPage]); // Dependency on currentPage to refetch data
 
-  // ===== RENDER =====
+  // Render Logic
+  // ---------------------------------------------------------------------------
+
   return (
     <div className="h-full overflow-auto p-3">
       {/* Main content with blur effect when modal is open */}
-      <PageBlurWrapper isBlurred={isModalOpen || isEditModalOpen}>
+      <PageBlurWrapper
+        isBlurred={isModalOpen || isEditModalOpen || isViewModalOpen}
+      >
         <div className="w-full flex flex-col gap-3 px-1">
           {/* Header section */}
           <div className="flex items-center justify-between">
@@ -265,39 +287,28 @@ export default function Billing() {
                         {bill.patient?.firstName} {bill.patient?.lastName}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                        ${bill.treatmentFee?.toFixed(2) || "0.00"}
+                        ${Number(bill.treatmentFee)?.toFixed(2) || "0.00"}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                        ${bill.medicationFee?.toFixed(2) || "0.00"}
+                        ${Number(bill.medicationFee)?.toFixed(2) || "0.00"}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                        ${bill.labTestFee?.toFixed(2) || "0.00"}
+                        ${Number(bill.labTestFee)?.toFixed(2) || "0.00"}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[100px]">
-                        ${bill.consultationFee?.toFixed(2) || "0.00"}
+                        ${Number(bill.consultationFee)?.toFixed(2) || "0.00"}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap font-bold max-w-[100px]">
-                        ${bill.totalAmount?.toFixed(2) || "0.00"}
+                        ${Number(bill.totalAmount)?.toFixed(2) || "0.00"}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 max-w-[140px]">
-                        <Dropdown
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="w-max"
-                          options={["Paid", "Unpaid"]}
-                          value={
-                            bill.paymentStatus?.charAt(0).toUpperCase() +
-                              bill.paymentStatus?.slice(1) || "Unpaid"
-                          }
-                          defaultLabel={
-                            bill.paymentStatus?.charAt(0).toUpperCase() +
-                              bill.paymentStatus?.slice(1) || "Unpaid"
-                          }
-                          onSelect={(value) =>
-                            handleStatusChange(bill.billId, value)
-                          }
-                        />
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                            bill.paymentStatus
+                          )}`}
+                        >
+                          {bill.paymentStatus}
+                        </span>
                       </TableCell>
                       <TableCell className="text-xs px-4 py-3 whitespace-nowrap max-w-[120px]">
                         <div className="flex items-center gap-2">
@@ -327,7 +338,14 @@ export default function Billing() {
                     </TableRow>
                   ))
                 ) : (
-                  <div>No bills found</div>
+                  <TableRow>
+                    <TableCell
+                      colSpan={header.length}
+                      className="text-center py-4 text-gray-500"
+                    >
+                      No bills found
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
@@ -350,11 +368,16 @@ export default function Billing() {
         closeOnBackdropClick={true}
         closeOnEscape={true}
       >
-        <AddBilling
-          onClose={closeModal}
-          onAddBill={handleAddBill}
-          isLoading={isLoading}
-        />
+        <div
+          style={{ maxHeight: "80vh", overflowY: "auto" }}
+          className="scrollbar-hide"
+        >
+          <AddBilling
+            onClose={closeModal}
+            onAddBill={handleAddBill}
+            isLoading={isLoading}
+          />
+        </div>
       </ModalWrapper>
       {/* Edit Billing Modal */}
       <ModalWrapper
@@ -366,11 +389,16 @@ export default function Billing() {
         closeOnEscape={true}
       >
         {selectedRecord && (
-          <EditBilling
-            onClose={closeEditModal}
-            onUpdateBill={handleUpdateBill}
-            initialData={selectedRecord}
-          />
+          <div
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+            className="scrollbar-hide"
+          >
+            <EditBilling
+              onClose={closeEditModal}
+              onUpdateBill={handleUpdateBill}
+              initialData={selectedRecord}
+            />
+          </div>
         )}
       </ModalWrapper>
       {/* View Billing Details Modal */}

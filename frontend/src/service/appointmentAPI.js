@@ -21,7 +21,7 @@ export const createAppointment = async (newData) => {
 };
 
 // update appointment
-export const updatedAppointment = async (id, updatedData) => {
+export const updateAppointment = async (id, updatedData) => {
   const response = await axios.put(`${API_URL}/${id}`, updatedData);
   return response.data;
 };

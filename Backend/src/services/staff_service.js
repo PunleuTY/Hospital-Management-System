@@ -1,6 +1,7 @@
 import db from "../../db/models/index.js";
 const { Staff, Department, Appointment, Billing } = db;
 
+// List staff with pagination; include department and supervisor info
 export const listAllStaff = async ({ limit, offset }) =>
   Staff.findAndCountAll({
     limit,
@@ -31,6 +32,7 @@ export const listAllStaff = async ({ limit, offset }) =>
     ],
   });
 
+// Find a staff member by ID with department and supervisor info
 export const findStaffById = async (id) =>
   Staff.findByPk(id, {
     attributes: [
@@ -58,40 +60,34 @@ export const findStaffById = async (id) =>
     ],
   });
 
+// Create a new staff record
 export const createStaffSv = async (data) => Staff.create(data);
 
+// Update a staff record by ID
 export const updateStaffSv = async (id, data) =>
   Staff.update(data, { where: { staffId: id } });
 
+// Delete staff and all related appointments and billings
 export const deleteStaffSv = async (id) => {
-  // 1) nuke every appointment where this user was the doctor
-  await Appointment.destroy({ where: { doctorId: id } });
-  // 2) nuke every billing where this user was the receptionist
-  await Billing.destroy({ where: { receptionistId: id } });
-  // 3) finally delete the staff record itself
-  return Staff.destroy({ where: { staffId: id } });
+  await Appointment.destroy({ where: { doctorId: id } }); // Remove related appointments
+  await Billing.destroy({ where: { receptionistId: id } }); // Remove related billings
+  return Staff.destroy({ where: { staffId: id } }); // Delete staff
 };
 
+// Get IDs of all staff with role Doctor
 export const getAllDoctorId = async () => {
   const doctorsId = await Staff.findAll({
-    where: { role: "doctor" },
+    where: { role: "Doctor" },
     attributes: ["staff_id"],
   });
-  return doctorsId.map((doctor) => doctor.staff_id);
+  return doctorsId.map((d) => d.get("staff_id"));
 };
 
+// Get IDs of all staff with role Receptionist
 export const getAllReceptionistIds = async () => {
-  const { Op } = db.Sequelize;
-  const receptionists = await Staff.findAll({
-    where: {
-      role: { [Op.iLike]: "%receptionist%" }, // For Postgres, case-insensitive
-    },
-    attributes: ["staffId", "role"], // Use staffId, not staff_id
+  const receptionistsId = await Staff.findAll({
+    where: { role: "Receptionist" },
+    attributes: ["staff_id"],
   });
-  console.log(
-    "Backend: Found receptionists:",
-    receptionists.map((r) => ({ id: r.staffId, role: r.role }))
-  );
-  return receptionists.map((r) => r.staffId);
+  return receptionistsId.map((r) => r.get("staff_id"));
 };
-

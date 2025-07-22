@@ -12,13 +12,11 @@ import {
 } from "../controllers/staff_controller.js";
 
 router.get("/", getAllStaff);
-router.get("/:id", getStaffById);
 router.get("/doctors/id", allDoctorId);
+router.get("/:id", getStaffById);
 router.post("/", createStaff);
 router.put("/:id", updateStaff);
 router.delete("/:id", deleteStaff);
-
-// Router for get all receptionist IDs
 router.get("/receptionists/id", allReceptionistId);
 
 export default router;

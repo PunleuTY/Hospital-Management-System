@@ -70,7 +70,7 @@ export default (sequelize, DataTypes) => {
       as: "team",
     });
     Staff.belongsToMany(models.Patient, {
-      through: models.Appointment,
+      through: "patient_doctor",
       foreignKey: "staff_id",
       otherKey: "patient_id",
       as: "patients",

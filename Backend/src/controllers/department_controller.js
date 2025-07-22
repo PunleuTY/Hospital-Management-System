@@ -1,3 +1,4 @@
+// Import services and response helpers
 import {
   listDepartments,
   findDepartmentById,
@@ -7,6 +8,7 @@ import {
 } from "../services/department_service.js";
 import { success, fail } from "../utils/response.js";
 
+// Get all departments with pagination
 export const getAllDepartments = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.max(1, parseInt(req.query.limit, 10) || 10);
@@ -24,6 +26,7 @@ export const getAllDepartments = async (req, res) => {
   }
 };
 
+// Get department by ID
 export const getDepartmentById = async (req, res) => {
   try {
     const dept = await findDepartmentById(req.params.id);
@@ -36,6 +39,7 @@ export const getDepartmentById = async (req, res) => {
   }
 };
 
+// Create new department
 export const createDepartment = async (req, res) => {
   try {
     const dept = await createDepartmentSv(req.body);
@@ -45,6 +49,7 @@ export const createDepartment = async (req, res) => {
   }
 };
 
+// Update department by ID
 export const updateDepartment = async (req, res) => {
   try {
     const [rows] = await updateDepartmentSv(req.params.id, req.body);
@@ -57,6 +62,7 @@ export const updateDepartment = async (req, res) => {
   }
 };
 
+// Delete department by ID
 export const deleteDepartment = async (req, res) => {
   try {
     const rows = await deleteDepartmentSv(req.params.id);

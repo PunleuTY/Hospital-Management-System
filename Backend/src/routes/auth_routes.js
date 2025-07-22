@@ -4,6 +4,6 @@ import { userLoginValidate } from "../middlewares/validate_middleware.js";
 
 const router = express.Router();
 
-router.post("/login", userLoginValidate, login); // Changed from /api/login to /api/auth/login
+router.post("/login", userLoginValidate, login);
 
 export default router;

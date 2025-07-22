@@ -12,10 +12,10 @@ const router = express.Router();
 
 router.get("/patients", getAllPatientsForDropdown);
 router.get("/appointments", getAllAppointmentsForDropdown);
-
 router.get("/", getAllMedicalRecords);
 router.get("/:id", getMedicalRecordById);
 router.post("/", createMedicalRecord);
 router.put("/:id", updateMedicalRecord);
 router.delete("/:id", deleteMedicalRecord);
+
 export default router;
