@@ -24,7 +24,9 @@ export default function MedicalRecordView({ data }) {
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Appointment ID
             </label>
-            <p className="text-lg text-gray-900">{data.appointmentId}</p>
+            <p className="text-lg text-gray-900">
+              {data.appointmentId || "---"}
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
+
+// Common UI components
 import Button from "../common/Button";
 import Label from "../common/Label";
 import Input from "../common/Input";
@@ -6,6 +8,7 @@ import Dropdown from "../common/Dropdown";
 import { Card, CardHeader, CardContent } from "../common/Card";
 
 export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
+  // Set initial form data from props
   const [formData, setFormData] = useState({
     firstName: initialData?.first_name || "",
     lastName: initialData?.last_name || "",
@@ -17,6 +20,7 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
     doctorId: initialData?.doctor_id || "",
   });
 
+  // Update form field value
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -24,12 +28,14 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
     }));
   };
 
+  // Submit form
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (onUpdateStaff && initialData?.staff_id) {
       onUpdateStaff(initialData.staff_id, formData);
     }
+
     if (onClose) {
       onClose();
     }
@@ -40,8 +46,10 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
       <CardHeader className="text-center">
         <h1 className="text-xl font-semibold text-gray-900">Edit Staff</h1>
       </CardHeader>
+
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Input fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <Label required>First Name</Label>
@@ -51,6 +59,7 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
                 onChange={(e) => handleInputChange("firstName", e.target.value)}
               />
             </div>
+
             <div>
               <Label required>Last Name</Label>
               <Input
@@ -59,23 +68,27 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
                 onChange={(e) => handleInputChange("lastName", e.target.value)}
               />
             </div>
+
             <div>
               <Label required>Gender</Label>
               <Dropdown
                 options={["Male", "Female", "Other"]}
-                defaultLabel="Select Gender"
+                defaultLabel={`${formData.gender || "Select Gender"}`}
                 value={formData.gender}
                 onSelect={(value) => handleInputChange("gender", value)}
               />
             </div>
+
             <div>
               <Label required>Role</Label>
-              <Input
-                placeholder="Enter role"
+              <Dropdown
+                options={["Doctor", "Nurse", "Receptionist"]}
+                defaultLabel={`${formData.role || "Select Role"}`}
                 value={formData.role}
-                onChange={(e) => handleInputChange("role", e.target.value)}
+                onSelect={(value) => handleInputChange("role", value)}
               />
             </div>
+
             <div>
               <Label>Contact</Label>
               <Input
@@ -84,16 +97,20 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
                 onChange={(e) => handleInputChange("contact", e.target.value)}
               />
             </div>
-            <div>
-              <Label>Specialization</Label>
-              <Input
-                placeholder="Enter specialization"
-                value={formData.specialization}
-                onChange={(e) =>
-                  handleInputChange("specialization", e.target.value)
-                }
-              />
-            </div>
+
+            {formData.role === "Doctor" && (
+              <div>
+                <Label>Specialization</Label>
+                <Input
+                  placeholder="Enter specialization"
+                  value={formData.specialization}
+                  onChange={(e) =>
+                    handleInputChange("specialization", e.target.value)
+                  }
+                />
+              </div>
+            )}
+
             <div>
               <Label>Department ID</Label>
               <Input
@@ -104,7 +121,8 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
                 }
               />
             </div>
-            {formData.doctorId && (
+
+            {formData.role !== "Doctor" && (
               <div>
                 <Label>Doctor ID (Supervisor)</Label>
                 <Input
@@ -117,6 +135,8 @@ export default function EditStaff({ onClose, onUpdateStaff, initialData }) {
               </div>
             )}
           </div>
+
+          {/* Submit button */}
           <div className="mt-6">
             <Button
               content={"Update Staff Record"}

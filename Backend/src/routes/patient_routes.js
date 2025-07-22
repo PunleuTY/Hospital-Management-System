@@ -12,13 +12,9 @@ import {
 const router = express.Router();
 
 router.get("/", getAllPatients);
-
-// Router to count patient
 router.get("/count", countPatient);
-
-// Router for get patient by id
+router.get("/id", allPatientId);
 router.get("/:id", getPatientById);
-router.get("/patients/id", allPatientId);
 router.post("/", createPatient);
 router.put("/:id", updatePatient);
 router.delete("/:id", deletePatient);

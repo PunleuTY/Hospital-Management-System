@@ -20,7 +20,7 @@ import { createUser, getUserSummarize } from "../service/userAPI.js";
 // Utils
 import { success, error } from "./utils/toast.js";
 
-export default function AddUser() {
+export default function User() {
   // ===== STATE MANAGEMENT =====
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
@@ -54,15 +54,7 @@ export default function AddUser() {
 
   // ===== UTILITY FUNCTIONS =====
   const findRoleStatistics = (role) => {
-    if (
-      !userSummarize ||
-      !userSummarize.roleStatistics ||
-      !Array.isArray(userSummarize.roleStatistics)
-    ) {
-      return 0; // Return 0 instead of "Unknown" since you're displaying numbers
-    }
-
-    const user = userSummarize.roleStatistics.find((u) => u.roleName === role);
+    const user = userSummarize.roleStatistics?.find((u) => u.roleName === role);
     return user ? user.userCount : 0;
   };
 

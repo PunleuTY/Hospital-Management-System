@@ -16,7 +16,7 @@ import MedicalRecord from "./components/Medicalrecord.jsx";
 
 import Login from "./components/Login.jsx";
 import AddStaff from "./components/form/addStaff.jsx";
-import AddUser from "./components/addUser.jsx";
+import User from "./components/User.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 import { getToken } from "./utils/auth.js";
@@ -25,10 +25,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
-          element={getToken() ? <DashboardWithLayout /> : <Login />}
-        />
+        <Route path="/" element={<Login />} />
         <Route
           path="/dashboard/*"
           element={
@@ -37,10 +34,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <ToastContainer />
     </Router>
   );
+}
+
+function NotFound() {
+  return <div>404 - Not Found</div>;
 }
 
 function DashboardWithLayout() {
@@ -55,7 +57,7 @@ function DashboardWithLayout() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/appointments" element={<Appointment />} />
-            <Route path="/staff/add" element={<AddUser />} />
+            <Route path="/staff/add" element={<User />} />
             <Route path="/staff" element={<Staff />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/patient" element={<Patient />} />

@@ -1,6 +1,7 @@
 import db from "../../db/models/index.js";
 const { Billing, Staff, Patient } = db;
 
+// List bills with pagination, including patient and receptionist details
 export const listBills = ({ limit, offset }) =>
   Billing.findAndCountAll({
     limit,
@@ -31,6 +32,7 @@ export const listBills = ({ limit, offset }) =>
     ],
   });
 
+// Find a bill by ID with patient and receptionist info
 export const findBillById = (id) =>
   Billing.findByPk(id, {
     attributes: [
@@ -58,31 +60,27 @@ export const findBillById = (id) =>
     ],
   });
 
+// Create a new billing record
 export const createBillSv = (billData) => Billing.create(billData);
 
+// Update existing billing record by ID
 export const updateBillSv = (id, billData) =>
   Billing.update(billData, { where: { billId: id } });
 
+// Delete billing record by ID
 export const deleteBillSv = (id) => Billing.destroy({ where: { billId: id } });
 
-export const getTotalAmountPaid = () => {
-  return Billing.sum("totalAmount", {
-    where: { paymentStatus: "Paid" },
-  });
-};
+// Sum of totalAmount where paymentStatus is 'Paid'
+export const getTotalAmountPaid = () =>
+  Billing.sum("totalAmount", { where: { paymentStatus: "Paid" } });
 
-export const getTotalAmountUnpaid = () => {
-  return Billing.sum("totalAmount", {
-    where: { paymentStatus: "Unpaid" },
-  });
-};
+// Sum of totalAmount where paymentStatus is 'Unpaid'
+export const getTotalAmountUnpaid = () =>
+  Billing.sum("totalAmount", { where: { paymentStatus: "Unpaid" } });
 
-export const getTotalBillsCount = () => {
-  return Billing.count();
-};
+// Total count of billing records
+export const getTotalBillsCount = () => Billing.count();
 
-export const getTotalUnpaidCount = () => {
-  return Billing.count({
-    where: { paymentStatus: "Unpaid" },
-  });
-};
+// Count of unpaid billing records
+export const getTotalUnpaidCount = () =>
+  Billing.count({ where: { paymentStatus: "Unpaid" } });

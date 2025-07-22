@@ -37,7 +37,7 @@ export default (sequelize, DataTypes) => {
 
   User.associate = (models) => {
     User.belongsTo(models.Role, {
-      foreignKey: "role_id",
+      foreignKey: "roleId",
       onDelete: "SET NULL",
       as: "role",
     });

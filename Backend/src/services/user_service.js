@@ -1,8 +1,7 @@
 import db from "../../db/models/index.js";
-import sequelize from "../../db/config/db_config.js";
-const { User, Role } = db;
+const { User, Role, sequelize } = db;
 
-// Find user with role information
+// Find user by username, include role info
 export const findUser = (username) => {
   console.log("user: ", username);
   return User.findOne({
@@ -11,13 +10,13 @@ export const findUser = (username) => {
       {
         model: Role,
         as: "role",
-        attributes: ["role_id", "role_name"], // Only get specific fields
+        attributes: ["role_id", "role_name"],
       },
     ],
   });
 };
 
-// Find user by ID with role
+// Find user by ID, include role info
 export const findUserById = (id) => {
   return User.findByPk(id, {
     include: [
@@ -30,10 +29,10 @@ export const findUserById = (id) => {
   });
 };
 
-// Get all users with roles
-export const getAllUsers = async () => {
+// Get all users with role info, exclude password, ordered by user_id
+export const getAllUsersSv = async () => {
   try {
-    const users = await User.findAll({
+    return await User.findAll({
       include: [
         {
           model: Role,
@@ -41,23 +40,21 @@ export const getAllUsers = async () => {
           attributes: ["role_id", "role_name"],
         },
       ],
-      attributes: { exclude: ["password"] }, // Don't return passwords
+      attributes: { exclude: ["password"] },
       order: [["user_id", "ASC"]],
     });
-
-    return users;
   } catch (error) {
-    console.error("Error in listUsers:", error);
+    console.error("Error in getAllUsersSv:", error);
     throw error;
   }
 };
 
+// Get count of users grouped by role
 export const getUsersByRole = async () => {
   try {
-    const usersByRole = await User.findAll({
+    return await User.findAll({
       attributes: [
-        // Fix: Use the correct table alias "Users" instead of "User"
-        [sequelize.fn("COUNT", sequelize.col("Users.user_id")), "userCount"],
+        [sequelize.fn("COUNT", sequelize.col("User.user_id")), "userCount"],
       ],
       include: [
         {
@@ -67,27 +64,22 @@ export const getUsersByRole = async () => {
         },
       ],
       group: ["role.role_id", "role.role_name"],
-      order: [["role", "role_name", "ASC"]],
+      order: [[sequelize.col("role.role_name"), "ASC"]],
     });
-
-    return usersByRole;
   } catch (error) {
     console.error("Error in getUsersByRole:", error);
     throw error;
   }
 };
 
-// Fixed version of getUserStatistics
+// Get total user count and users grouped by role with counts formatted
 export const getUserStatistics = async () => {
   try {
-    // Get total users
     const totalUsers = await User.count();
 
-    // Get users by role with correct column reference
     const usersByRole = await User.findAll({
       attributes: [
-        // Fix: Use "Users.user_id" to match the table alias
-        [sequelize.fn("COUNT", sequelize.col("Users.user_id")), "userCount"],
+        [sequelize.fn("COUNT", sequelize.col("user_id")), "userCount"],
       ],
       include: [
         {
@@ -97,14 +89,13 @@ export const getUserStatistics = async () => {
         },
       ],
       group: ["role.role_id", "role.role_name"],
-      order: [["role", "role_name", "ASC"]],
+      order: [[sequelize.col("role.role_name"), "ASC"]],
     });
 
-    // Format the response
-    const roleStatistics = usersByRole.map((item) => ({
-      roleId: item.role.role_id,
-      roleName: item.role.role_name,
-      userCount: parseInt(item.dataValues.userCount),
+    const roleStatistics = usersByRole.map((user) => ({
+      roleId: user.get("role").get("role_id"),
+      roleName: user.get("role").get("role_name"),
+      userCount: parseInt(user.get("userCount")),
     }));
 
     return {
@@ -117,16 +108,17 @@ export const getUserStatistics = async () => {
   }
 };
 
+// Create a new user
 export const createUserSv = async (data) => {
   return User.create(data);
 };
 
-// Update user
+// Update user by ID
 export const updateUserSv = async (id, data) => {
   return User.update(data, { where: { user_id: id } });
 };
 
-// Delete user
+// Delete user by ID
 export const deleteUserSv = async (id) => {
   return User.destroy({ where: { user_id: id } });
 };

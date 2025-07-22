@@ -1,19 +1,20 @@
-import { React } from "react";
 import { useState } from "react";
+
+// Common UI components
 import Button from "../common/Button";
-import Dropdown from "../common/Dropdown";
 import Label from "../common/Label";
 import Input from "../common/Input";
 import Textarea from "../common/Textarea";
 import { Card, CardHeader, CardContent } from "../common/Card";
 
-//Icons
+// Icons
 import { RiUserAddLine } from "react-icons/ri";
 import { FaRegUser } from "react-icons/fa";
 import { GiBodyHeight } from "react-icons/gi";
 import { IoIosMailUnread } from "react-icons/io";
 
 export default function AddPatient({ onClose, onAddPatient }) {
+  // Form data state
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -25,6 +26,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
     email: "",
   });
 
+  // Handle input field change
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -32,6 +34,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted with data:", formData);
@@ -58,7 +61,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/*Patient Personal Information*/}
+          {/* Patient Personal Information */}
           <div>
             <div className="flex items-center gap-3 mb-3">
               <FaRegUser className="text-l text-blue-500 gap-2" />
@@ -91,7 +94,6 @@ export default function AddPatient({ onClose, onAddPatient }) {
               </div>
 
               <div>
-                {/*DOB*/}
                 <Label required>Date of Birth</Label>
                 <Input
                   type="date"
@@ -104,7 +106,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
             </div>
           </div>
 
-          {/*Patient Physical Information*/}
+          {/* Patient Physical Information */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <GiBodyHeight className="text-2xl text-blue-500" />
@@ -136,7 +138,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
             </div>
           </div>
 
-          {/*Contact Information*/}
+          {/* Contact Information */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <IoIosMailUnread className="text-2xl text-blue-500" />
@@ -147,7 +149,6 @@ export default function AddPatient({ onClose, onAddPatient }) {
 
             <div className="space-y-4">
               <div>
-                {/*Address */}
                 <Label required>Address</Label>
                 <Textarea
                   placeholder="Enter complete address including street, city, state, and postal code"
@@ -159,7 +160,6 @@ export default function AddPatient({ onClose, onAddPatient }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  {/*Phone Number*/}
                   <Label required>Contact Number</Label>
                   <Input
                     type="tel"
@@ -172,7 +172,6 @@ export default function AddPatient({ onClose, onAddPatient }) {
                 </div>
 
                 <div>
-                  {/*Email Address*/}
                   <Label required>Email Address</Label>
                   <Input
                     type="email"
@@ -185,7 +184,7 @@ export default function AddPatient({ onClose, onAddPatient }) {
             </div>
           </div>
 
-          {/*Submit Button*/}
+          {/* Submit Button */}
           <div className="mt-6">
             <Button
               content={"Create Patient Record"}

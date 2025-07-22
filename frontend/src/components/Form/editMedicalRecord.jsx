@@ -1,39 +1,37 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../common/Button";
 import Input from "../common/Input";
 import Label from "../common/Label";
 import Textarea from "../common/Textarea";
 import { Card, CardHeader, CardContent } from "../common/Card";
 import {
-  createMedicalRecord,
-  updateMedicalRecord,
   fetchPatients,
   fetchAppointments,
 } from "../../service/medicalrecordAPI.js";
 import { FaUserDoctor } from "react-icons/fa6";
 import { FaNotesMedical } from "react-icons/fa";
-import { success, error } from "../utils/toast.js";
+import { error } from "../utils/toast.js";
 
-export default function AddMedicalRecord({
+export default function EditMedicalRecord({
   onClose,
-  onAddMedicalRecord,
-  editData = null,
+  onUpdateMedicalRecord,
+  initialData,
 }) {
   // State Management
   // ---------------------------------------------------------------------------
 
-  // Holds the form input data for medical record
+  // Holds the form input data, initialized with initialData
   const [formData, setFormData] = useState({
-    patientID: editData?.patientId?.toString() || "",
-    appointmentID: editData?.appointmentId?.toString() || "",
-    diagnosis: editData?.diagnosis || "",
-    treatment: editData?.treatment || "",
-    prescription: editData?.prescription || "",
-    lab_result: editData?.labResult || "",
+    patientID: initialData?.patientId || "",
+    appointmentID: initialData?.appointmentId || "",
+    diagnosis: initialData?.diagnosis || "",
+    treatment: initialData?.treatment || "",
+    prescription: initialData?.prescription || "",
+    lab_result: initialData?.labResult || "",
   });
-  // Stores available patient IDs for dropdown
+  // Stores available patient IDs
   const [patientOptions, setPatientOptions] = useState([]);
-  // Stores available appointment IDs for dropdown
+  // Stores available appointment IDs
   const [appointmentOptions, setAppointmentOptions] = useState([]);
   // Indicates if form is currently submitting
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +76,7 @@ export default function AddMedicalRecord({
     setFormData((f) => ({ ...f, [field]: value }));
   };
 
-  // Handles form submission (create or update medical record)
+  // Handles form submission (update medical record)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitting) {
@@ -86,13 +84,30 @@ export default function AddMedicalRecord({
     }
     setSubmitting(true);
 
+    // Validate if options are loaded
+    if (!patientOptions.length || !appointmentOptions.length) {
+      setSubmitting(false);
+      return error(
+        "Loading valid Patient and Appointment IDs. Please try again in a moment."
+      );
+    }
+
     // Parse and validate IDs
-    const pid = parseInt(formData.patientID.trim(), 10);
-    const aid = parseInt(formData.appointmentID.trim(), 10);
+    const pid = parseInt(formData.patientID.toString().trim(), 10);
+    const aid = parseInt(formData.appointmentID.toString().trim(), 10);
 
     if (!pid || !aid) {
       setSubmitting(false);
       return error("Patient ID and Appointment ID must be positive numbers.");
+    }
+    // Check if IDs exist in options
+    if (!patientOptions.includes(pid)) {
+      setSubmitting(false);
+      return error("Patient ID does not exist.");
+    }
+    if (!appointmentOptions.includes(aid)) {
+      setSubmitting(false);
+      return error("Appointment ID does not exist.");
     }
 
     // Prepare payload for API call
@@ -106,19 +121,17 @@ export default function AddMedicalRecord({
     };
 
     try {
-      // Call appropriate API based on editData presence
-      if (editData) {
-        await updateMedicalRecord(editData.recordId, payload);
-        success("Medical record updated successfully!");
-      } else {
-        await createMedicalRecord(payload);
-        success("Medical record created successfully!");
+      // Call parent update function
+      if (onUpdateMedicalRecord && initialData?.recordId) {
+        await onUpdateMedicalRecord(initialData.recordId, payload);
       }
-      onAddMedicalRecord && onAddMedicalRecord(payload); // Notify parent
-      onClose && onClose(); // Close form
+      // Close the form/modal
+      if (onClose) {
+        onClose();
+      }
     } catch (err) {
-      console.error("Failed to save medical record:", err);
-      error("Error saving medical record.");
+      console.error("Failed to update medical record:", err);
+      error("Error updating medical record.");
     } finally {
       setSubmitting(false); // Reset submitting state
     }
@@ -134,11 +147,10 @@ export default function AddMedicalRecord({
         <div className="flex items-center justify-center gap-2">
           <FaNotesMedical className="text-2xl text-blue-500" />
           <h1 className="text-xl font-semibold text-gray-900">
-            {editData ? "Update" : "Create"} Medical Record
+            Update Medical Record
           </h1>
         </div>
       </CardHeader>
-
       {/* Card Content */}
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -177,7 +189,6 @@ export default function AddMedicalRecord({
               </div>
             </div>
           </div>
-
           {/* Diagnosis Input */}
           <div>
             <Label required>Diagnosis</Label>
@@ -188,7 +199,6 @@ export default function AddMedicalRecord({
               onChange={(e) => handleInputChange("diagnosis", e.target.value)}
             />
           </div>
-
           {/* Treatment Plan Input */}
           <div>
             <Label required>Treatment Plan</Label>
@@ -199,7 +209,6 @@ export default function AddMedicalRecord({
               onChange={(e) => handleInputChange("treatment", e.target.value)}
             />
           </div>
-
           {/* Prescription Input */}
           <div>
             <Label required>Prescription</Label>
@@ -212,7 +221,6 @@ export default function AddMedicalRecord({
               }
             />
           </div>
-
           {/* Laboratory Results Input */}
           <div>
             <Label>Laboratory Results</Label>
@@ -223,15 +231,12 @@ export default function AddMedicalRecord({
               onChange={(e) => handleInputChange("lab_result", e.target.value)}
             />
           </div>
-
           {/* Submit Button */}
           <div className="mt-6">
             <Button
               type="submit"
               disabled={submitting}
-              content={
-                editData ? "Update Medical Record" : "Create Medical Record"
-              }
+              content={"Update Medical Record"}
               className="w-full"
             />
           </div>

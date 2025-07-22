@@ -1,4 +1,7 @@
+// Import response helpers
 import { success, fail } from "../utils/response.js";
+
+// Import staff service functions
 import {
   listAllStaff,
   findStaffById,
@@ -9,6 +12,7 @@ import {
   getAllReceptionistIds,
 } from "../services/staff_service.js";
 
+// Get all receptionist IDs
 export const allReceptionistId = async (req, res) => {
   try {
     const ids = await getAllReceptionistIds();
@@ -18,10 +22,12 @@ export const allReceptionistId = async (req, res) => {
   }
 };
 
+// Get all staff with pagination
 export const getAllStaff = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.max(1, parseInt(req.query.limit) || 10);
   const offset = (page - 1) * limit;
+
   try {
     const { rows, count } = await listAllStaff({ limit, offset });
     const totalPages = Math.ceil(count / limit);
@@ -34,18 +40,18 @@ export const getAllStaff = async (req, res) => {
   }
 };
 
+// Get staff by ID
 export const getStaffById = async (req, res) => {
   try {
     const staff = await findStaffById(req.params.id);
-    if (!staff) {
-      return fail(res, "Staff not found", 404);
-    }
+    if (!staff) return fail(res, "Staff not found", 404);
     return success(res, staff);
   } catch (err) {
     return fail(res, err);
   }
 };
 
+// Create new staff
 export const createStaff = async (req, res) => {
   try {
     const staff = await createStaffSv(req.body);
@@ -55,6 +61,7 @@ export const createStaff = async (req, res) => {
   }
 };
 
+// Update staff
 export const updateStaff = async (req, res) => {
   try {
     const filteredBody = {};
@@ -78,18 +85,18 @@ export const updateStaff = async (req, res) => {
   }
 };
 
+// Delete staff
 export const deleteStaff = async (req, res) => {
   try {
     const rows = await deleteStaffSv(req.params.id);
-    if (rows === 0) {
-      return fail(res, "Staff not found", 404);
-    }
+    if (rows === 0) return fail(res, "Staff not found", 404);
     return success(res, { deleted: rows });
   } catch (err) {
     return fail(res, err);
   }
 };
 
+// Get all doctor IDs
 export const allDoctorId = async (req, res) => {
   try {
     const doctorsId = await getAllDoctorId();

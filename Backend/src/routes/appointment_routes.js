@@ -1,4 +1,4 @@
-import e from "express";
+import express from "express";
 import {
   getAllAppointments,
   getAppointmentById,
@@ -9,15 +9,11 @@ import {
   countAppointment,
 } from "../controllers/appointment_controller.js";
 
-const router = e.Router();
+const router = express.Router();
 
 router.get("/", getAllAppointments);
 router.get("/upcoming", getUpcomingAppointments);
-
-// Router for counting appointment
 router.get("/count", countAppointment);
-
-// Router for get appointment by id
 router.get("/:id", getAppointmentById);
 router.post("/", createAppointment);
 router.put("/:id", updateAppointment);

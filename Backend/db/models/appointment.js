@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
       status: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: "Not Completed", // Default status
+        defaultValue: "Scheduled", // Default status
       },
       doctorId: {
         type: DataTypes.INTEGER,
@@ -50,7 +50,7 @@ export default (sequelize, DataTypes) => {
       onDelete: "SET NULL",
     });
     Appointment.belongsTo(models.Staff, {
-      foreignKey: "doctor_id",
+      foreignKey: "doctorId",
       as: "doctor",
       onDelete: "SET NULL",
     });

@@ -26,12 +26,12 @@ export const deleteMedicalRecord = async (id) => {
   return response.data;
 };
 
-export const fetchPatients = () => {
-  const response = axios.get(`${API_URL}/patients`);
+export const fetchPatients = async () => {
+  const response = await axios.get(`${API_URL}/patients`);
   return response.data;
 };
 
-export const fetchAppointments = () => {
-  const response = axios.get(`${API_URL}/appointments`);
+export const fetchAppointments = async () => {
+  const response = await axios.get(`${API_URL}/appointments`);
   return response.data;
 };
