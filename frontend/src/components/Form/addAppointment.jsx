@@ -22,7 +22,7 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
     preferredTime: "",
     DoctorID: "",
     PatientID: "",
-    status: "pending", // default to pending
+    status: "Scheduled",
   });
 
   // Stores fetched patient IDs
@@ -40,8 +40,11 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const allDoctorIds = await getAllDoctorIds();
-        const allPatientIds = await getAllPatientIds();
+        //!NOTE: We need to fetch all patient and doctor IDs to show in the dropdowns.
+
+        //TODO: 1. uncomment lines below and getAllDoctorIds and getAllPatientIds, don't forget to use await
+        // const allDoctorIds =
+        // const allPatientIds =
 
         console.log("Fetched patients:", allPatientIds);
         console.log("Fetched doctors:", allDoctorIds);
@@ -102,7 +105,7 @@ export default function AddAppointment({ onClose, onAddAppointment }) {
 
     // Call parent callbacks
     if (onAddAppointment) {
-      onAddAppointment(appointmentData);
+      //TODO: call onAddAppointment and pass appointmentData as parameter
     }
     if (onClose) {
       onClose();
