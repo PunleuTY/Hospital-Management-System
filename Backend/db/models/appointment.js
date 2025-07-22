@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
       status: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: "Not Completed", // Default status
+        defaultValue: "Scheduled", // Default status
       },
       doctorId: {
         type: DataTypes.INTEGER,
