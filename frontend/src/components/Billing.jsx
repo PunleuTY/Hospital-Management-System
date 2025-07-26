@@ -416,7 +416,7 @@ export default function Billing() {
                                 e.stopPropagation();
                                 openEditModal(bill);
                               }}
-                              title="Edit"
+                              
                             >
                               <FiEdit className="w-4 h-4 cursor-pointer" />
                             </button>
