@@ -133,10 +133,8 @@ export default function Appointment() {
 
   const handleUpdateAppointment = async (aptId, formData) => {
     try {
-      //TODO: 1. call API to update appointment. Example: await .....
-
-      //TODO: 2. fetch all appointments again, you can use the fetchAllAppointment function above, watch example at handleAddAppointment
-
+      await updateAppointment(aptId, formData);
+      await fetchAllAppointment(currentPage, itemsPerPage);
       success("Appointment updated successfully");
       closeEditModal();
     } catch (err) {
@@ -147,10 +145,8 @@ export default function Appointment() {
 
   const handleDeleteAppointment = async (aptId) => {
     try {
-      //TODO: 1. call API to delete appointment. Example: await .....
-
-      //TODO: 2. fetch all appointments again, you can use the fetchAllAppointment function above
-
+      await deleteAppointment(aptId);
+      await fetchAllAppointment(currentPage, itemsPerPage);
       success("Appointment deleted successfully");
       setShowConfirm(false);
     } catch (err) {
