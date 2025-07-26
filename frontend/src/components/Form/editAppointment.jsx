@@ -56,11 +56,8 @@ export default function EditAppointment({
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        //!NOTE: We need to fetch all patient and doctor IDs to show in the dropdowns.
-
-        //TODO: 1. uncomment lines below and getAllDoctorIds and getAllPatientIds, don't forget to use await
-        // const allDoctorIds =
-        // const allPatientIds =
+        const allDoctorIds = await getAllDoctorIds();
+        const allPatientIds = await getAllPatientIds();
 
         setPatients(allPatientIds.data);
         setDoctors(allDoctorIds.data);
@@ -86,7 +83,7 @@ export default function EditAppointment({
 
     // Call parent update function if available
     if (onUpdateAppointment && initialData?.appointmentId) {
-      //TODO: call onUpdateAppointment and pass initial.appointmentId and formData as parameter, see other components for example.
+      onUpdateAppointment(initialData.appointmentId, formData);
     }
     // Close the form/modal
     if (onClose) {
