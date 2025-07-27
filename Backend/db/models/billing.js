@@ -40,12 +40,12 @@ export default (sequelize, DataTypes) => {
       },
       receptionistId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "receptionist_id",
       },
       patientId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "patient_id",
       },
     },
@@ -62,10 +62,12 @@ export default (sequelize, DataTypes) => {
     Billing.belongsTo(models.Patient, {
       foreignKey: "patientId",
       as: "patient",
+      onDelete: "SET NULL",
     });
     Billing.belongsTo(models.Staff, {
       foreignKey: "receptionistId",
       as: "receptionist",
+      onDelete: "SET NULL",
     });
   };
   return Billing;

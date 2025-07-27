@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
   {
     host: "localhost",
     dialect: "postgres",
-    logging: false, // Disable logging to reduce overhead
+    logging: false,
   }
 );
 

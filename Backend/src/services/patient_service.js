@@ -1,8 +1,9 @@
 import db from "../../db/models/index.js";
 const { Patient, Staff, Appointment, Medical_record, Billing } = db;
 
-export const listPatients = async ({ limit, offset }) => {
-  return Patient.findAndCountAll({
+// List patients with pagination; include their doctors (no junction attrs)
+export const listPatients = async ({ limit, offset }) =>
+  Patient.findAndCountAll({
     limit,
     offset,
     order: [["patientId", "ASC"]],
@@ -11,45 +12,42 @@ export const listPatients = async ({ limit, offset }) => {
         model: Staff,
         as: "doctors",
         attributes: ["staffId", "firstName", "lastName", "specialization"],
-        through: { attributes: [] }, // Don't include junction table attributes
+        through: { attributes: [] },
       },
     ],
   });
-};
 
-export const findPatientById = async (id) => {
-  return Patient.findByPk(id, {
+// Find patient by ID including their doctors
+export const findPatientById = async (id) =>
+  Patient.findByPk(id, {
     include: [
       {
         model: Staff,
         as: "doctors",
         attributes: ["staffId", "firstName", "lastName", "specialization"],
-        through: { attributes: [] }, // Don't include junction table attributes
+        through: { attributes: [] },
       },
     ],
   });
-};
-export const createPatientSv = async (patientData) => {
-  return Patient.create(patientData);
-};
 
-export const updatePatientSv = async (id, patientData) => {
-  return Patient.update(patientData, { where: { patientId: id } });
-};
+// Create a new patient
+export const createPatientSv = async (patientData) =>
+  Patient.create(patientData);
 
+// Update patient data by ID
+export const updatePatientSv = async (id, patientData) =>
+  Patient.update(patientData, { where: { patientId: id } });
+
+// Delete patient and all related records (appointments, medical records, billing)
 export const deletePatientSv = async (id) => {
-  // 1) delete dependents
   await Appointment.destroy({ where: { patientId: id } });
   await Medical_record.destroy({ where: { patientId: id } });
   await Billing.destroy({ where: { patientId: id } });
-
-  // 2) delete the patient
   return Patient.destroy({ where: { patientId: id } });
 };
 
+// Get array of all patient IDs
 export const getAllPatientId = async () => {
-  const patientsId = await Patient.findAll({
-    attributes: ["patientId"],
-  });
-  return patientsId.map((patient) => patient.patientId);
+  const patientsId = await Patient.findAll({ attributes: ["patientId"] });
+  return patientsId.map((patient) => patient.get("patientId"));
 };

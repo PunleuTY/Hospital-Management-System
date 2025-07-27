@@ -1,6 +1,6 @@
 export default (sequelize, DataTypes) => {
   const User = sequelize.define(
-    "Users",
+    "User",
     {
       userId: {
         type: DataTypes.INTEGER,
@@ -15,20 +15,20 @@ export default (sequelize, DataTypes) => {
         field: "username",
       },
       password: {
-        // Hash Password
         type: DataTypes.STRING,
         allowNull: false,
         field: "password",
       },
       roleId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "role_id",
       },
     },
     {
       tableName: "users",
       freezeTableName: true,
+      underscored: true,
       timestamps: true,
       createdAt: false,
       updatedAt: "last_modified",
@@ -37,7 +37,8 @@ export default (sequelize, DataTypes) => {
 
   User.associate = (models) => {
     User.belongsTo(models.Role, {
-      foreignKey: "role_id",
+      foreignKey: "roleId",
+      onDelete: "SET NULL",
       as: "role",
     });
   };

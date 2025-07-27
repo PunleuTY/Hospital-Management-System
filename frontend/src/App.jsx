@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Navigations from "./layouts/Navigations.jsx";
 import Header from "./layouts/Header.jsx";
 
-// Import Table Layout
 import Appointment from "./components/Appointment.jsx";
 import Billing from "./components/Billing.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -15,21 +14,35 @@ import Staff from "./components/Staff.jsx";
 import Patient from "./components/Patient.jsx";
 import MedicalRecord from "./components/Medicalrecord.jsx";
 
-// import Staff from "./components/Staff.jsx";
 import Login from "./components/Login.jsx";
 import AddStaff from "./components/form/addStaff.jsx";
-import AddUser from "./components/addUser.jsx";
+import User from "./components/User.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+import { getToken } from "./utils/auth.js";
 
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/dashboard/*" element={<DashboardWithLayout />} />
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute>
+              <DashboardWithLayout />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <ToastContainer />
     </Router>
   );
+}
+
+function NotFound() {
+  return <div>404 - Not Found</div>;
 }
 
 function DashboardWithLayout() {
@@ -44,7 +57,7 @@ function DashboardWithLayout() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/appointments" element={<Appointment />} />
-            <Route path="/staff/add" element={<AddUser />} />
+            <Route path="/staff/add" element={<User />} />
             <Route path="/staff" element={<Staff />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/patient" element={<Patient />} />

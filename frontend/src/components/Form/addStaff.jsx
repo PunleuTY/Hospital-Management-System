@@ -1,37 +1,55 @@
-import { React } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../common/Button";
 import Dropdown from "../common/Dropdown";
 import Label from "../common/Label";
 import Input from "../common/Input";
 import { Card, CardHeader, CardContent } from "../common/Card";
 import { motion } from "framer-motion";
-//Icons
+
+// Icons
 import { MdOutlineGroups } from "react-icons/md";
 import { GiNetworkBars } from "react-icons/gi";
 import { FaRegUser } from "react-icons/fa";
 
 export default function AddStaff({ onClose, onAddStaff }) {
+  // State Management
+  // ---------------------------------------------------------------------------
+
+  // Holds the form input data for new staff
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
+    firstName: "",
+    lastName: "",
     gender: "",
     role: "",
     contact: "",
     specialization: "",
-    department_id: "",
-    doctor_id: "",
+    departmentId: "",
+    doctorId: "",
   });
 
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  // Logs formData changes for debugging
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  // Event Handlers
+  // ---------------------------------------------------------------------------
+
+  // Handles form submission
   const handlesubmit = (e) => {
     e.preventDefault();
     console.log("Staff form submitted with data:", formData);
 
-    // Pass the actual form data
-    if (onAddStaff) onAddStaff(formData);
-    if (onClose) onClose();
+    // Pass the form data to the parent component
+    if (onAddStaff) {
+      onAddStaff(formData);
+    }
   };
 
+  // Updates form data state on input change
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -39,8 +57,12 @@ export default function AddStaff({ onClose, onAddStaff }) {
     }));
   };
 
+  // Render Logic
+  // ---------------------------------------------------------------------------
+
   return (
     <Card>
+      {/* Card Header */}
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-2">
           <MdOutlineGroups className="text-3xl text-blue-500" />
@@ -48,9 +70,10 @@ export default function AddStaff({ onClose, onAddStaff }) {
         </div>
       </CardHeader>
 
+      {/* Card Content */}
       <CardContent>
         <form onSubmit={handlesubmit} className="space-y-6">
-          {/*Staff Information*/}
+          {/* Staff Information Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -71,9 +94,9 @@ export default function AddStaff({ onClose, onAddStaff }) {
                     <Input
                       type="text"
                       placeholder="Enter first name"
-                      value={formData.first_name}
+                      value={formData.firstName}
                       onChange={(e) =>
-                        handleInputChange("first_name", e.target.value)
+                        handleInputChange("firstName", e.target.value)
                       }
                     />
                   </div>
@@ -83,9 +106,9 @@ export default function AddStaff({ onClose, onAddStaff }) {
                     <Input
                       type="text"
                       placeholder="Enter last name"
-                      value={formData.last_name}
+                      value={formData.lastName}
                       onChange={(e) =>
-                        handleInputChange("last_name", e.target.value)
+                        handleInputChange("lastName", e.target.value)
                       }
                     />
                   </div>
@@ -116,7 +139,7 @@ export default function AddStaff({ onClose, onAddStaff }) {
                 </div>
               </div>
 
-              {/*Job Information*/}
+              {/* Job Information Section */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <GiNetworkBars className="text-l text-blue-500" />
@@ -128,26 +151,27 @@ export default function AddStaff({ onClose, onAddStaff }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label required>Role/Position</Label>
-                    <Input
-                      type="text"
-                      placeholder="Enter your role/postion"
+                    <Dropdown
+                      options={["Doctor", "Nurse", "Receptionist"]}
+                      defaultLabel="Select your Role"
                       value={formData.role}
-                      onChange={(e) =>
-                        handleInputChange("role", e.target.value)
-                      }
+                      onSelect={(value) => handleInputChange("role", value)}
                     />
                   </div>
-                  <div>
-                    <Label>Specialization</Label>
-                    <Input
-                      type="text"
-                      placeholder="Enter your specialization"
-                      value={formData.specialization}
-                      onChange={(e) =>
-                        handleInputChange("specialization", e.target.value)
-                      }
-                    />
-                  </div>
+                  {/* Specialization field, only visible for Doctor role */}
+                  {formData.role === "Doctor" && (
+                    <div>
+                      <Label>Specialization</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter your specialization"
+                        value={formData.specialization}
+                        onChange={(e) =>
+                          handleInputChange("specialization", e.target.value)
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -156,28 +180,31 @@ export default function AddStaff({ onClose, onAddStaff }) {
                     <Dropdown
                       options={[1, 2, 3, 4, 5]}
                       defaultLabel="Select DepartmentID"
-                      value={formData.department_id}
+                      value={formData.departmentId}
                       onSelect={(value) =>
-                        handleInputChange("department_id", value)
+                        handleInputChange("departmentId", value)
                       }
                     />
                   </div>
 
-                  <div>
-                    <Label>StaffID(Doctor)</Label>
-                    <Dropdown
-                      options={[1, 2, 3, 4, 5]}
-                      defaultLabel="Select DoctorID"
-                      value={formData.doctor_id}
-                      onSelect={(value) =>
-                        handleInputChange("doctor_id", value)
-                      }
-                    />
-                  </div>
+                  {/* StaffID(Doctor) field, hidden for Doctor role */}
+                  {formData.role !== "Doctor" && (
+                    <div>
+                      <Label>StaffID(Doctor)</Label>
+                      <Dropdown
+                        options={[1, 2, 3, 4, 5]}
+                        defaultLabel="Select DoctorID"
+                        value={formData.doctorId}
+                        onSelect={(value) =>
+                          handleInputChange("doctorId", value)
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/*Submit Button*/}
+              {/* Submit Button */}
               <motion.div className="mt-6">
                 <Button
                   content={"Create Staff Record"}

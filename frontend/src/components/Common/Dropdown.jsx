@@ -5,27 +5,18 @@ const Dropdown = ({
   options = [],
   defaultLabel = "Select",
   onSelect,
-  className,
   reset,
-  onClick,
-  value, // Add value prop to control the dropdown
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(value || null);
+  const [selected, setSelected] = useState(null);
 
-  // Update selected when value prop changes
-  useEffect(() => {
-    setSelected(value || null);
-  }, [value]);
-
-  // Reset the dropdown when reset value changes
   useEffect(() => {
     if (reset) {
       setSelected(null);
       setIsOpen(false);
     }
-  }, [reset]);
+  });
 
   const handleSelect = (option) => {
     setSelected(option);
@@ -33,37 +24,25 @@ const Dropdown = ({
     setIsOpen(false);
   };
 
-  const handleDropdownClick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    setIsOpen(!isOpen);
-    if (onClick) onClick(e); // Call the passed onClick handler if it exists
-  };
-
   return (
-    <div
-      className={`relative inline-block w-60 ${className}`}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="relative inline-block w-60">
       <button
         type="button"
-        onClick={handleDropdownClick}
-        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-black tween ${
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex justify-between items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black tween ${
           selected ? "text-gray-800" : "text-gray-400"
         }`}
       >
-        <span>{selected || value || defaultLabel}</span>
+        <span>{selected || defaultLabel}</span>
         <HiChevronDown className="w-5 h-5 text-gray-600" />
       </button>
 
       {isOpen && (
-        <ul className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+        <ul className="scrollbar-hide absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
           {options.map((option, index) => (
             <li
               key={index}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent event bubbling when selecting an option
-                handleSelect(option);
-              }}
+              onClick={() => handleSelect(option)}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             >
               {option}
@@ -71,6 +50,17 @@ const Dropdown = ({
           ))}
         </ul>
       )}
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+          height: 0;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };

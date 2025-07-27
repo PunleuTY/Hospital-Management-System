@@ -21,7 +21,7 @@ export const createAppointment = async (newData) => {
 };
 
 // update appointment
-export const updatedAppointment = async (id, updatedData) => {
+export const updateAppointment = async (id, updatedData) => {
   const response = await axios.put(`${API_URL}/${id}`, updatedData);
   return response.data;
 };
@@ -36,4 +36,10 @@ export const deleteAppointment = async (id) => {
 export const getUpcomingAppointments = async () => {
   const response = await axios.get(`${API_URL}/upcoming`);
   return response.data;
+};
+
+// count appointment
+export const countAppointment = async () => {
+  const resposne = await axios.get(`${API_URL}/count`);
+  return resposne.data;
 };

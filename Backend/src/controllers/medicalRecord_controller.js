@@ -1,12 +1,16 @@
+// Import services and response helpers
 import {
   listMedicalRecords,
   findMedicalRecordById,
   createMedicalRecordSv,
   updateMedicalRecordSv,
   deleteMedicalRecordSv,
+  getAllPatientsForDropdownSv,
+  getAllAppointmentsForDropdownSv,
 } from "../services/medicalRecord_service.js";
 import { success, fail } from "../utils/response.js";
 
+// Get all medical records with pagination
 export const getAllMedicalRecords = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.max(1, parseInt(req.query.limit) || 10);
@@ -29,6 +33,7 @@ export const getAllMedicalRecords = async (req, res) => {
   }
 };
 
+// Get one medical record by ID
 export const getMedicalRecordById = async (req, res) => {
   try {
     const record = await findMedicalRecordById(req.params.id);
@@ -42,6 +47,7 @@ export const getMedicalRecordById = async (req, res) => {
   }
 };
 
+// Create a new medical record
 export const createMedicalRecord = async (req, res) => {
   try {
     const record = await createMedicalRecordSv(req.body);
@@ -52,12 +58,25 @@ export const createMedicalRecord = async (req, res) => {
   }
 };
 
+// Update a medical record
 export const updateMedicalRecord = async (req, res) => {
   try {
-    const [rows] = await updateMedicalRecordSv(req.params.id, req.body);
+    const filteredBody = {};
+    for (const key in req.body) {
+      if (
+        req.body[key] !== "" &&
+        req.body[key] !== undefined &&
+        req.body[key] !== null
+      ) {
+        filteredBody[key] = req.body[key];
+      }
+    }
+
+    const [rows] = await updateMedicalRecordSv(req.params.id, filteredBody);
     if (rows === 0) {
       return fail(res, "Medical record not found or no changes made", 404);
     }
+
     const updated = await findMedicalRecordById(req.params.id);
     return success(res, updated);
   } catch (err) {
@@ -66,6 +85,7 @@ export const updateMedicalRecord = async (req, res) => {
   }
 };
 
+// Delete a medical record
 export const deleteMedicalRecord = async (req, res) => {
   try {
     const rows = await deleteMedicalRecordSv(req.params.id);
@@ -76,5 +96,27 @@ export const deleteMedicalRecord = async (req, res) => {
   } catch (err) {
     console.error("deleteMedicalRecord error:", err);
     return fail(res, err);
+  }
+};
+
+// Get all patients for dropdown
+export const getAllPatientsForDropdown = async (req, res) => {
+  try {
+    const patients = await getAllPatientsForDropdownSv();
+    return success(res, { data: patients });
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    return fail(res, "Failed to fetch patients", 500);
+  }
+};
+
+// Get all appointments for dropdown
+export const getAllAppointmentsForDropdown = async (req, res) => {
+  try {
+    const appointments = await getAllAppointmentsForDropdownSv();
+    return success(res, { data: appointments });
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    return fail(res, "Failed to fetch appointments", 500);
   }
 };

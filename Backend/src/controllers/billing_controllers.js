@@ -1,3 +1,4 @@
+// Import services and response helpers
 import {
   listBills,
   findBillById,
@@ -11,6 +12,7 @@ import {
 } from "../services/billing_service.js";
 import { success, fail } from "../utils/response.js";
 
+// Get all bills with pagination
 export const getAllBills = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.max(1, parseInt(req.query.limit) || 10);
@@ -33,6 +35,7 @@ export const getAllBills = async (req, res) => {
   }
 };
 
+// Get one bill by ID
 export const getBillById = async (req, res) => {
   try {
     const billing = await findBillById(req.params.id);
@@ -47,6 +50,7 @@ export const getBillById = async (req, res) => {
   }
 };
 
+// Create a new bill
 export const createBill = async (req, res) => {
   try {
     const billing = await createBillSv(req.body);
@@ -56,6 +60,7 @@ export const createBill = async (req, res) => {
   }
 };
 
+// Update a bill by ID
 export const updateBill = async (req, res) => {
   try {
     const [rowsUpdated] = await updateBillSv(req.params.id, req.body);
@@ -71,6 +76,7 @@ export const updateBill = async (req, res) => {
   }
 };
 
+// Delete a bill by ID
 export const deleteBill = async (req, res) => {
   try {
     const rowsDeleted = await deleteBillSv(req.params.id);
@@ -85,12 +91,14 @@ export const deleteBill = async (req, res) => {
   }
 };
 
+// Get billing summary
 export const summaryBilling = async (req, res) => {
   try {
     const totalPaid = await getTotalAmountPaid();
     const totalUnpaid = await getTotalAmountUnpaid();
     const totalBills = await getTotalBillsCount();
     const totalUnpaidCount = await getTotalUnpaidCount();
+
     return success(res, {
       totalPaid,
       totalUnpaid,

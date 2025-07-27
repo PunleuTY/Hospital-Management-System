@@ -36,8 +36,8 @@ app.use("/api/medical_records", medicalRecordRoutes);
 app.use("/api/staffs", staffRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/departments", departmentRoutes);
-app.use(userRoutes);
-app.use(authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use(notFound);
 app.use(catchErrors);
@@ -47,7 +47,6 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
     await sequelize.sync({ alter: true });
-    // console.log("Skipping database sync - using existing schema.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
     process.exit(1);

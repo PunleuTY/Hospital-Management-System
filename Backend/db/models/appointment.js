@@ -20,16 +20,16 @@ export default (sequelize, DataTypes) => {
       status: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: "Not Completed", // Default status
+        defaultValue: "Scheduled", // Default status
       },
       doctorId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "doctor_id",
       },
       patientId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: "patient_id",
       },
     },
@@ -43,20 +43,17 @@ export default (sequelize, DataTypes) => {
   );
 
   // Association
-
-  Appointment.associate = models => {
-
-    Appointment.associate = (models) => {
-
-      Appointment.belongsTo(models.Patient, {
-        foreignKey: "patient_id",
-        as: "patient",
-      });
-      Appointment.belongsTo(models.Staff, {
-        foreignKey: "doctor_id",
-        as: "doctor",
-      });
-    };
-  }
-    return Appointment;
+  Appointment.associate = (models) => {
+    Appointment.belongsTo(models.Patient, {
+      foreignKey: "patient_id",
+      as: "patient",
+      onDelete: "SET NULL",
+    });
+    Appointment.belongsTo(models.Staff, {
+      foreignKey: "doctorId",
+      as: "doctor",
+      onDelete: "SET NULL",
+    });
+  };
+  return Appointment;
 };

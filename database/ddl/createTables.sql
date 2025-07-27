@@ -1,6 +1,6 @@
 -- DATABASE
 CREATE DATABASE HOSPITAL;
-
+drop database HOSPITAL;
 -- DEPARTMENT TABLE
 CREATE TABLE department (
     department_id SERIAL PRIMARY KEY,
@@ -43,6 +43,7 @@ CREATE TABLE patient (
     email VARCHAR(50)                     
 );
 
+
 ALTER TABLE patient ADD last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- PATIENT_DOCTOR JUNCTION TABLE (Many-to-Many relationship)
@@ -51,9 +52,9 @@ CREATE TABLE patient_doctor (
     patient_id INT NOT NULL,
     doctor_id INT NOT NULL,
     CONSTRAINT fk_patient_doctor_patient FOREIGN KEY (patient_id)
-        REFERENCES patient (patient_id) ON DELETE CASCADE,
+        REFERENCES patient(patient_id) ON DELETE CASCADE,
     CONSTRAINT fk_patient_doctor_doctor FOREIGN KEY (doctor_id)
-        REFERENCES staff (staff_id) ON DELETE CASCADE,
+        REFERENCES staff(staff_id) ON DELETE CASCADE
 );
 
 ALTER TABLE patient_doctor ADD last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP;

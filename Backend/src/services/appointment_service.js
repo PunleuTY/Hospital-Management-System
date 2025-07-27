@@ -1,16 +1,19 @@
 import db from "../../db/models/index.js";
-const { Appointment, Patient, Staff, Medical_record } = db;
 
+const { Appointment, Patient, Staff, Medical_record, Sequelize, sequelize } =
+  db;
+const { Op } = Sequelize;
+
+// List all appointments with pagination and related patient & doctor info
 export const listAllAppointments = async ({ limit, offset }) => {
   return Appointment.findAndCountAll({
-    // only these six columns from appointment:
     attributes: [
       "appointmentId",
       "patientId",
       "doctorId",
       "dateTime",
-      "purpose",
       "status",
+      "purpose",
     ],
     order: [["appointmentId", "ASC"]],
     limit,
@@ -30,6 +33,7 @@ export const listAllAppointments = async ({ limit, offset }) => {
   });
 };
 
+// Find a single appointment by ID including patient and doctor
 export const findAppointmentById = async (id) => {
   return Appointment.findByPk(id, {
     attributes: [
@@ -37,6 +41,7 @@ export const findAppointmentById = async (id) => {
       "patientId",
       "doctorId",
       "dateTime",
+      "purpose",
       "status",
     ],
     include: [
@@ -54,18 +59,28 @@ export const findAppointmentById = async (id) => {
   });
 };
 
+// Create a new appointment
 export const createAppointmentSv = async (data) => Appointment.create(data);
 
+// Update appointment by ID
 export const updateAppointmentSv = async (id, data) =>
   Appointment.update(data, { where: { appointmentId: id } });
 
+// Delete appointment and its related medical records transactionally
 export const deleteAppointmentSv = async (id) => {
-  // 1) delete medical records
-  await Medical_record.destroy({ where: { appointmentId: id } });
-  // 2) delete the appointment
-  return Appointment.destroy({ where: { appointmentId: id } });
+  return sequelize.transaction(async (t) => {
+    await Medical_record.destroy({
+      where: { appointmentId: id },
+      transaction: t,
+    });
+    return Appointment.destroy({
+      where: { appointmentId: id },
+      transaction: t,
+    });
+  });
 };
 
+// Get upcoming scheduled appointments (next 10)
 export const getUpcomingScheduledAppointments = async () => {
   return Appointment.findAll({
     attributes: [
@@ -77,12 +92,12 @@ export const getUpcomingScheduledAppointments = async () => {
       "status",
     ],
     where: {
-      status: "scheduled",
+      status: "Scheduled",
       dateTime: {
-        [db.Sequelize.Op.gte]: new Date(), // Only future appointments
+        [Op.gte]: new Date(),
       },
     },
-    order: [["dateTime", "ASC"]], // Order by appointment time
+    order: [["dateTime", "ASC"]],
     limit: 10,
     include: [
       {

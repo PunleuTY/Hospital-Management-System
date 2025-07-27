@@ -1,4 +1,4 @@
-import e from "express";
+import express from "express";
 import {
   getAllAppointments,
   getAppointmentById,
@@ -6,26 +6,17 @@ import {
   updateAppointment,
   deleteAppointment,
   getUpcomingAppointments,
+  countAppointment,
 } from "../controllers/appointment_controller.js";
 
-const router = e.Router();
+const router = express.Router();
 
-// Router for get all appointments
 router.get("/", getAllAppointments);
-
-// Router for get upcoming scheduled appointments (10 limit)
 router.get("/upcoming", getUpcomingAppointments);
-
-// Router for get appointment by id
+router.get("/count", countAppointment);
 router.get("/:id", getAppointmentById);
-
-// Router for create appointment
 router.post("/", createAppointment);
-
-// Router for update appointment
 router.put("/:id", updateAppointment);
-
-// Router for delete appointment
 router.delete("/:id", deleteAppointment);
 
 export default router;

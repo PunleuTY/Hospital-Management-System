@@ -11,8 +11,8 @@ import {
 const router = express.Router();
 
 router.get("/", getAllBills);
-router.get("/:id", getBillById);
 router.get("/stat", summaryBilling);
+router.get("/:id", getBillById);
 router.post("/", createBill);
 router.put("/:id", updateBill);
 router.delete("/:id", deleteBill);
